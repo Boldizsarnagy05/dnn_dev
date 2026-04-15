@@ -1,0 +1,3 @@
+﻿IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'{databaseOwner}[{objectQualifier}Teszko_Dnn_HelloWorld_Items_Items]') AND type in (N'U'))
+DROP TABLE {databaseOwner}[{objectQualifier}Teszko_Dnn_HelloWorld_Items_Items]
+GO

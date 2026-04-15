@@ -1,0 +1,35 @@
+﻿<style>
+.mvcContainer {
+    background-color: #262626 !important;
+    color: #FDFDFD !important;
+    border-left: 4px solid #991414;
+    padding: 12px 14px;
+    border-radius: 4px;
+    display: block;
+}
+
+.mvcContainer .natura-co-intro {
+    background-color: transparent !important;
+    color: inherit !important;
+}
+
+.mvcContainer p,
+.natura-co-intro p {
+    color: inherit;
+    margin: 0 0 8px 0;
+}
+
+.mvcContainer p:last-child,
+.natura-co-intro p:last-child {
+    margin-bottom: 0;
+}
+
+.mvcContainer p:first-child,
+.natura-co-intro p:first-child {
+    color: #FFD600 !important;
+    font-weight: 600;
+}
+</style>
+<div class="mvcContainer">
+    @RenderBody()
+</div>
