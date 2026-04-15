@@ -1,0 +1,35 @@
+.vs/
+bin/
+obj/
+packages/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build/package output
+*.nupkg
+*.zip`n!Teszko_Dnn_HelloWorld_Items/install/*.zip
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+env/
+pip-wheel-metadata/
+*.egg-info/
+
+# Local data / exports
+*.xlsx
+*.xls
+*.csv
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
