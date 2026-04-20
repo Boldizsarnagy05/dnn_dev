@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NaturaCo recept rendszer mockup</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="top-nav">
+  <div class="nav-brand">NaturaCo rendszerterv</div>
+  <div class="nav-tabs" role="tablist">
+    <button class="nav-tab active" onclick="showPage('recipe-list', this)">Receptlista</button>
+    <button class="nav-tab" onclick="showPage('recipe-detail', this)">Recept részletek</button>
+    <button class="nav-tab" onclick="showPage('client-app', this)">Kliensalkalmazás</button>
+    <button class="nav-tab" onclick="showPage('kcal-calc', this)">Kcal modul</button>
+  </div>
+</nav>
+
+<section id="recipe-list" class="page active">
+  <header class="webshop-header">
+    <div class="logo">Natura<span>Co</span></div>
+    <div class="header-nav">Főoldal / Termékek / <strong>Receptek</strong> / Rólunk</div>
+  </header>
+
+  <main class="container">
+    <div class="page-heading">
+      <p class="eyebrow">Receptalapú vásárlás</p>
+      <h1>Receptek prémium NaturaCo alapanyagokból</h1>
+      <p class="subtitle">Válogatott receptek, amelyek közvetlenül a webshop termékeire épülnek.</p>
+    </div>
+
+    <div class="toolbar">
+      <div class="filters">
+        <button class="filter-btn active">Összes</button>
+        <button class="filter-btn">High protein</button>
+        <button class="filter-btn">Vegán</button>
+        <button class="filter-btn">Gluténmentes</button>
+        <button class="filter-btn">Gyors</button>
+      </div>
+      <label class="search-bar">
+        <span>Keresés</span>
+        <input type="text" placeholder="pl. zabkása, smoothie, rizottó">
+      </label>
+    </div>
+
+    <div class="recipe-grid">
+      <article class="recipe-card" onclick="showPage('recipe-detail', document.querySelectorAll('.nav-tab')[1])">
+        <div class="recipe-photo photo-smoothie"><span>Protein smoothie</span></div>
+        <div class="card-body">
+          <div class="card-tags"><span class="tag">High protein</span><span class="tag">Gyors</span></div>
+          <h2>Prémium protein smoothie</h2>
+          <p>Bio zabpehely, fehérjepor, mogyoróvaj és mandulatej.</p>
+          <div class="card-meta"><span>2 fő</span><span>10 perc</span><span>420 kcal/adag</span></div>
+        </div>
+      </article>
+
+      <article class="recipe-card">
+        <div class="recipe-photo photo-oats"><span>Gluténmentes zabkása</span></div>
+        <div class="card-body">
+          <div class="card-tags"><span class="tag">Gluténmentes</span><span class="tag">Vegán</span></div>
+          <h2>Gluténmentes zabkása</h2>
+          <p>Kókusztejjel, bogyós gyümölcsökkel és magvakkal.</p>
+          <div class="card-meta"><span>1 fő</span><span>15 perc</span><span>310 kcal/adag</span></div>
+        </div>
+      </article>
+
+      <article class="recipe-card">
+        <div class="recipe-photo photo-rice"><span>Csirkés rizottó</span></div>
+        <div class="card-body">
+          <div class="card-tags"><span class="tag">High protein</span></div>
+          <h2>Csirkés barna rizs tál</h2>
+          <p>Fehérjedús ebéd barna rizzsel és bio zöldségekkel.</p>
+          <div class="card-meta"><span>4 fő</span><span>45 perc</span><span>520 kcal/adag</span></div>
+        </div>
+      </article>
+    </div>
+  </main>
+</section>
+
+<section id="recipe-detail" class="page">
+  <header class="webshop-header">
+    <div class="logo">Natura<span>Co</span></div>
+    <div class="header-nav">Főoldal / Termékek / <strong>Receptek</strong> / Kosár</div>
+  </header>
+
+  <main class="container">
+    <button class="back-link" onclick="showPage('recipe-list', document.querySelectorAll('.nav-tab')[0])">Vissza a receptekhez</button>
+
+    <div class="detail-header">
+      <div class="recipe-photo detail-photo photo-smoothie"><span>Protein smoothie</span></div>
+      <div class="detail-info">
+        <div class="card-tags"><span class="tag">High protein</span><span class="tag">Gyors</span></div>
+        <h1>Prémium protein smoothie</h1>
+        <p>Tápláló reggeli smoothie bio zabpehellyel, prémium fehérjeporral és mogyoróvajjal. A recept termékei közvetlenül a NaturaCo webshop kínálatából érkeznek.</p>
+        <div class="detail-meta">
+          <div class="meta-item">
+            <div class="meta-label">Főszám</div>
+            <div class="serving-control">
+              <button onclick="changeServing(-1)">-</button>
+              <span id="serving-count">2</span>
+              <button onclick="changeServing(1)">+</button>
+              <span>fő</span>
+            </div>
+          </div>
+          <div class="meta-item"><div class="meta-label">Elkészítés</div><strong>10 perc</strong></div>
+          <div class="meta-item"><div class="meta-label">Állapot</div><strong>Publikált recept</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-columns">
+      <section class="ingredients-section">
+        <div class="section-title">
+          <h2>Összetevők és vásárolható kiszerelés</h2>
+          <p>A recept mennyiségei főszám szerint változnak, a kosárba kerülő mennyiség pedig a webshop kiszerelése alapján felfelé kerekít.</p>
+        </div>
+
+        <div class="table-wrap">
+          <table class="ingredients-table">
+            <thead>
+              <tr>
+                <th>Hozzávaló</th>
+                <th>Recept szerint</th>
+                <th>Kiszerelés</th>
+                <th>Kosárba kerül</th>
+                <th>Ár</th>
+                <th>Állapot</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="ingredient-body"></tbody>
+          </table>
+        </div>
+
+        <div class="cart-explain" id="rounding-note"></div>
+        <button class="btn-cart-all" onclick="addAllToCart()">Összes hozzávaló kosárba</button>
+        <div class="cart-feedback" id="cart-feedback">A Hotcakes kosár visszajelzése itt jelenik meg.</div>
+      </section>
+
+      <aside class="summary-panel">
+        <h2>Recept összesítés</h2>
+        <div class="nutrition-grid">
+          <div class="nutrition-card"><strong id="nut-kcal">420</strong><span>kcal/adag</span></div>
+          <div class="nutrition-card"><strong id="nut-protein">32 g</strong><span>fehérje/adag</span></div>
+          <div class="nutrition-card"><strong id="nut-carb">45 g</strong><span>szénhidrát/adag</span></div>
+          <div class="nutrition-card"><strong id="nut-fat">12 g</strong><span>zsír/adag</span></div>
+        </div>
+        <div class="cost-summary">
+          <div><span>Becsült teljes kosárérték</span><strong id="total-cost">0 Ft</strong></div>
+          <div><span>Becsült költség/adag</span><strong id="cost-per-serving">0 Ft</strong></div>
+        </div>
+        <h3>Kosár előnézet</h3>
+        <ul id="cart-list" class="cart-list">
+          <li>Még nincs hozzáadott tétel.</li>
+        </ul>
+      </aside>
+    </div>
+
+    <section class="steps-section">
+      <h2>Elkészítés</h2>
+      <ol class="steps-list">
+        <li>A zabpelyhet szórd egy turmixgépbe.</li>
+        <li>Add hozzá a fehérjeport és a mogyoróvajat.</li>
+        <li>Öntsd rá a mandulatejet.</li>
+        <li>Szeleteld bele a banánt, majd turmixold simára.</li>
+      </ol>
+    </section>
+  </main>
+</section>
+
+<section id="client-app" class="page">
+  <main class="client-shell">
+    <div class="win-titlebar">NaturaCo Receptkezelő kliens, WinForms koncepció</div>
+    <div class="win-menubar">Fájl / Recept / Publikálás / Súgó</div>
+
+    <div class="client-grid">
+      <aside class="win-sidebar">
+        <h2>Receptek</h2>
+        <input type="text" placeholder="Keresés receptnév alapján">
+        <div class="win-list-item active"><span class="dot published"></span>Prémium protein smoothie</div>
+        <div class="win-list-item"><span class="dot published"></span>Gluténmentes zabkása</div>
+        <div class="win-list-item"><span class="dot draft"></span>Vegán Buddha bowl</div>
+        <div class="win-list-item"><span class="dot revoked"></span>Régi szezonális recept</div>
+        <button class="win-btn full">Új recept</button>
+      </aside>
+
+      <section class="client-main">
+        <div class="client-card">
+          <h2>Recept metaadatok</h2>
+          <div class="form-grid">
+            <label>Recept neve<input value="Prémium protein smoothie"></label>
+            <label>Főszám<input value="2"></label>
+            <label>Elkészítési idő<input value="10 perc"></label>
+            <label>Állapot<select><option>Publikált</option><option>Tervezet</option><option>Visszavont</option></select></label>
+          </div>
+          <label>Leírás<textarea>Tápláló reggeli smoothie bio zabpehellyel, prémium fehérjeporral és mogyoróvajjal.</textarea></label>
+        </div>
+
+        <div class="client-card">
+          <div class="section-title">
+            <h2>Webshop termékkatalógus</h2>
+            <p>A PO nem szabad szöveget ír be, hanem meglévő webshop termékekből építi fel a receptet.</p>
+          </div>
+          <div class="catalog-grid">
+            <div class="catalog-item">
+              <strong>Bio zabpehely</strong>
+              <span>Szénhidrátforrás / 1000 g / 1 290 Ft / 24 db készleten</span>
+              <button class="win-btn">Hozzáadás</button>
+            </div>
+            <div class="catalog-item">
+              <strong>Prémium fehérjepor</strong>
+              <span>Étrendkiegészítő / 500 g / 4 990 Ft / 8 db készleten</span>
+              <button class="win-btn">Hozzáadás</button>
+            </div>
+            <div class="catalog-item warning">
+              <strong>Bio mogyoróvaj</strong>
+              <span>Zsiradék / 250 g / 2 190 Ft / alacsony készlet</span>
+              <button class="win-btn">Hozzáadás</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="client-card">
+          <h2>Recept összetevői</h2>
+          <table class="win-table">
+            <thead><tr><th>Termék</th><th>Recept mennyiség</th><th>Kiszerelés</th><th>Kcal</th><th>Árbecslés</th></tr></thead>
+            <tbody>
+              <tr><td>Bio zabpehely</td><td>100 g</td><td>1000 g</td><td>370 kcal</td><td>129 Ft</td></tr>
+              <tr><td>Prémium fehérjepor</td><td>30 g</td><td>500 g</td><td>118 kcal</td><td>299 Ft</td></tr>
+              <tr><td>Bio mogyoróvaj</td><td>20 g</td><td>250 g</td><td>124 kcal</td><td>175 Ft</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <aside class="client-summary">
+        <h2>Admin összegzés</h2>
+        <div class="summary-stat"><span>Kalória/adag</span><strong>420 kcal</strong></div>
+        <div class="summary-stat"><span>Fehérje/adag</span><strong>32 g</strong></div>
+        <div class="summary-stat"><span>Becsült költség/adag</span><strong>604 Ft</strong></div>
+        <div class="summary-stat"><span>Hiányzó adat</span><strong>0 termék</strong></div>
+        <button class="win-btn full">Mentés tervezetként</button>
+        <button class="win-btn publish full">Publikálás webshopra</button>
+      </aside>
+    </div>
+  </main>
+</section>
+
+<section id="kcal-calc" class="page">
+  <header class="webshop-header">
+    <div class="logo">Natura<span>Co</span></div>
+    <div class="header-nav">Főoldal / Termékek / Receptek / <strong>Kalóriaszámító</strong></div>
+  </header>
+
+  <main class="container">
+    <div class="phase-banner">
+      Későbbi fejlesztési fázisra javasolt modul. A receptes rendszer az elsődleges scope.
+    </div>
+    <div class="page-heading">
+      <p class="eyebrow">Opcionális személyre szabott modul</p>
+      <h1>Kalóriaszámító és termékajánló</h1>
+      <p class="subtitle">Becslés napi kalória- és makróigényre, historizált adatokkal és cél alapján szűrt termékekkel.</p>
+    </div>
+
+    <div class="kcal-layout">
+      <section class="kcal-form">
+        <h2>Személyes profil</h2>
+        <div class="form-row-2">
+          <label>Nem<select><option>Férfi</option><option>Nő</option></select></label>
+          <label>Aktivitás<select><option>Közepes, heti 3-5 edzés</option></select></label>
+        </div>
+        <div class="form-row-2">
+          <label>Életkor<input type="number" value="28"></label>
+          <label>Testsúly<input type="number" value="75"></label>
+        </div>
+        <div class="form-row-2">
+          <label>Magasság<input type="number" value="178"></label>
+          <label>Cél<select><option>Szinten tartás</option><option>Fogyás</option><option>Tömegnövelés</option></select></label>
+        </div>
+        <button class="btn-calculate">Számítás</button>
+        <p class="form-note">Bejelentkezett felhasználónál a kitöltés előzményként menthető. Vendég módban nincs historizálás.</p>
+      </section>
+
+      <section class="kcal-results">
+        <h2>Eredmény</h2>
+        <div class="result-main"><strong>2300-2600</strong><span>kcal / nap</span></div>
+        <div class="result-cards">
+          <div><strong>150 g</strong><span>fehérje</span></div>
+          <div><strong>80 g</strong><span>zsír</span></div>
+          <div><strong>285-360 g</strong><span>szénhidrát</span></div>
+        </div>
+        <p class="form-note">Az eredmény becslés, nem orvosi tanács.</p>
+      </section>
+    </div>
+
+    <section class="product-suggestions">
+      <h2>Cél alapján ajánlott termékek</h2>
+      <div class="suggestion-grid">
+        <div class="suggestion-card"><strong>Prémium fehérjepor</strong><span>Fehérjeforrás / 4 990 Ft</span></div>
+        <div class="suggestion-card"><strong>Bio zabpehely</strong><span>Komplex szénhidrát / 1 290 Ft</span></div>
+        <div class="suggestion-card"><strong>Omega-3 balance</strong><span>Étrendkiegészítő / 5 490 Ft</span></div>
+      </div>
+    </section>
+  </main>
+</section>
+
+<script>
+const baseServings = 2;
+let currentServings = 2;
+let cart = [];
+
+const ingredients = [
+  { name: "Bio zabpehely", baseQty: 100, unit: "g", packSize: 1000, packUnit: "g", packPrice: 1290, kcal: 370, protein: 13, carb: 60, fat: 7, stock: 24 },
+  { name: "Prémium fehérjepor", baseQty: 30, unit: "g", packSize: 500, packUnit: "g", packPrice: 4990, kcal: 118, protein: 24, carb: 3, fat: 2, stock: 8 },
+  { name: "Bio mogyoróvaj", baseQty: 20, unit: "g", packSize: 250, packUnit: "g", packPrice: 2190, kcal: 124, protein: 5, carb: 4, fat: 10, stock: 3 },
+  { name: "Mandulatej", baseQty: 200, unit: "ml", packSize: 1000, packUnit: "ml", packPrice: 890, kcal: 32, protein: 1, carb: 3, fat: 2, stock: 19 },
+  { name: "Banán", baseQty: 1, unit: "db", packSize: 1, packUnit: "db", packPrice: 120, kcal: 105, protein: 1, carb: 27, fat: 0, stock: 40 }
+];
+
+function money(value) {
+  return Math.round(value).toLocaleString("hu-HU") + " Ft";
+}
+
+function showPage(id, button) {
+  document.querySelectorAll(".page").forEach(page => page.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  document.querySelectorAll(".nav-tab").forEach(tab => tab.classList.remove("active"));
+  if (button) button.classList.add("active");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function getScaledIngredient(item) {
+  const ratio = currentServings / baseServings;
+  const needed = item.baseQty * ratio;
+  const packs = Math.ceil(needed / item.packSize);
+  return {
+    ...item,
+    needed,
+    packs,
+    cartQty: packs * item.packSize,
+    cartCost: packs * item.packPrice,
+    status: item.stock < packs ? "Nincs elég készlet" : item.stock <= 3 ? "Kevés készlet" : "Raktáron"
+  };
+}
+
+function renderRecipe() {
+  document.getElementById("serving-count").textContent = currentServings;
+  const scaled = ingredients.map(getScaledIngredient);
+  const tbody = document.getElementById("ingredient-body");
+  tbody.innerHTML = "";
+
+  scaled.forEach((item, index) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><strong>${item.name}</strong></td>
+      <td>${formatQty(item.needed, item.unit)}</td>
+      <td>${item.packSize} ${item.packUnit}</td>
+      <td>${item.packs} csomag (${formatQty(item.cartQty, item.packUnit)})</td>
+      <td>${money(item.cartCost)}</td>
+      <td><span class="stock ${item.status === "Raktáron" ? "ok" : "warn"}">${item.status}</span></td>
+      <td><button class="btn-cart-sm" onclick="addToCart(${index})">Kosárba</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  const totalCost = scaled.reduce((sum, item) => sum + item.cartCost, 0);
+  const totalKcal = scaled.reduce((sum, item) => sum + item.kcal * (item.needed / item.baseQty), 0);
+  const totalProtein = scaled.reduce((sum, item) => sum + item.protein * (item.needed / item.baseQty), 0);
+  const totalCarb = scaled.reduce((sum, item) => sum + item.carb * (item.needed / item.baseQty), 0);
+  const totalFat = scaled.reduce((sum, item) => sum + item.fat * (item.needed / item.baseQty), 0);
+
+  document.getElementById("nut-kcal").textContent = Math.round(totalKcal / currentServings);
+  document.getElementById("nut-protein").textContent = Math.round(totalProtein / currentServings) + " g";
+  document.getElementById("nut-carb").textContent = Math.round(totalCarb / currentServings) + " g";
+  document.getElementById("nut-fat").textContent = Math.round(totalFat / currentServings) + " g";
+  document.getElementById("total-cost").textContent = money(totalCost);
+  document.getElementById("cost-per-serving").textContent = money(totalCost / currentServings);
+  document.getElementById("rounding-note").textContent =
+    `Példa: ${formatQty(scaled[0].needed, scaled[0].unit)} zabpehely kell a recepthez, de a termék ${scaled[0].packSize} ${scaled[0].packUnit}-os kiszerelésben érhető el, ezért ${scaled[0].packs} csomag kerül a kosárba.`;
+}
+
+function formatQty(value, unit) {
+  const rounded = unit === "db" ? Math.ceil(value) : Math.round(value);
+  return `${rounded} ${unit}`;
+}
+
+function changeServing(delta) {
+  currentServings = Math.max(1, Math.min(12, currentServings + delta));
+  renderRecipe();
+}
+
+function addToCart(index) {
+  const item = getScaledIngredient(ingredients[index]);
+  cart.push(item);
+  renderCart(`${item.name} hozzáadva a Hotcakes kosárhoz: ${item.packs} csomag.`);
+}
+
+function addAllToCart() {
+  cart = ingredients.map(getScaledIngredient);
+  renderCart("Az összes elérhető hozzávaló hozzáadva a Hotcakes kosárhoz.");
+}
+
+function renderCart(message) {
+  document.getElementById("cart-feedback").textContent = message;
+  const list = document.getElementById("cart-list");
+  list.innerHTML = "";
+  cart.forEach(item => {
+    const li = document.createElement("li");
+    li.textContent = `${item.name}: ${item.packs} csomag, ${money(item.cartCost)}`;
+    list.appendChild(li);
+  });
+}
+
+renderRecipe();
+</script>
+</body>
+</html>
