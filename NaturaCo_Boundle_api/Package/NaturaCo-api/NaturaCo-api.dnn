@@ -1,0 +1,66 @@
+<dotnetnuke type="Package" version="8.0">
+  <packages>
+    <package name="NaturaCo-api" type="Module" version="01.00.10">
+      <friendlyName>NaturaCo API</friendlyName>
+      <description>Minimal DNN module package for the NaturaCo RecipeSync API.</description>
+      <owner>
+        <name>NaturaCo</name>
+        <organization>NaturaCo</organization>
+        <url></url>
+        <email></email>
+      </owner>
+      <license src="License.txt"></license>
+      <releaseNotes src="ReleaseNotes.txt"></releaseNotes>
+      <dependencies>
+        <dependency type="coreVersion">09.13.10</dependency>
+      </dependencies>
+      <components>
+        <component type="Module">
+          <desktopModule>
+            <moduleName>NaturaCo API</moduleName>
+            <foldername>NaturaCo</foldername>
+            <businessControllerClass></businessControllerClass>
+            <codeSubdirectory></codeSubdirectory>
+            <isAdmin>false</isAdmin>
+            <isPremium>false</isPremium>
+            <supportedFeatures></supportedFeatures>
+            <moduleDefinition>
+              <friendlyName>NaturaCo API</friendlyName>
+              <defaultCacheTime>0</defaultCacheTime>
+              <moduleControls>
+                <moduleControl>
+                  <controlKey></controlKey>
+                  <controlSrc>DesktopModules/NaturaCo/View.ascx</controlSrc>
+                  <supportsPartialRendering>false</supportsPartialRendering>
+                  <controlTitle>NaturaCo API</controlTitle>
+                  <controlType>View</controlType>
+                  <iconFile></iconFile>
+                  <helpUrl></helpUrl>
+                  <viewOrder>0</viewOrder>
+                </moduleControl>
+              </moduleControls>
+            </moduleDefinition>
+          </desktopModule>
+        </component>
+        <component type="Assembly">
+          <assemblies>
+            <assembly>
+              <path>bin</path>
+              <name>NaturaCo.RecipeSyncApi.dll</name>
+            </assembly>
+          </assemblies>
+        </component>
+        <component type="File">
+          <files>
+            <basePath>DesktopModules/NaturaCo</basePath>
+            <file>
+              <path></path>
+              <name>View.ascx</name>
+              <sourceFileName>DesktopModules/NaturaCo/View.ascx</sourceFileName>
+            </file>
+          </files>
+        </component>
+      </components>
+    </package>
+  </packages>
+</dotnetnuke>
