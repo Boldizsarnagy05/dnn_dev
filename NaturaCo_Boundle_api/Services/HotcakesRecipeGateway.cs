@@ -176,7 +176,7 @@ namespace NaturaCo.RecipeSyncApi.Services
             var hidden = !(request.PublishAfterSave || string.Equals(request.Status, "Published", StringComparison.OrdinalIgnoreCase));
 
             SetPropertyIfPresent(category, "Name", request.RecipeName);
-            SetPropertyIfPresent(category, "Description", request.Description);
+            SetPropertyIfPresent(category, "Description", RecipeMetadataFormatter.Apply(request.Description, request));
             SetPropertyIfPresent(category, "MetaDescription", request.ShortDescription ?? request.Description);
             SetPropertyIfPresent(category, "RewriteUrl", BuildSlug(request.RecipeName));
             SetPropertyIfPresent(category, "Hidden", hidden);

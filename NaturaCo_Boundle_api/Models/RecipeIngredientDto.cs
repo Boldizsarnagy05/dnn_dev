@@ -6,6 +6,10 @@ namespace NaturaCo.RecipeSyncApi.Models
         public string ProductName { get; set; }
         public decimal Quantity { get; set; }
         public string Unit { get; set; }
+        public int? Calories { get; set; }
+        public decimal? Price { get; set; }
+        public decimal? PackageQuantity { get; set; }
+        public string PackageUnit { get; set; }
         public int SortOrder { get; set; }
     }
 }

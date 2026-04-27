@@ -17,6 +17,7 @@ namespace NaturaCo.RecipeSyncApi.Models
         public decimal? EstimatedCost { get; set; }
         public string AuthorName { get; set; }
         public string PreviewImageUrl { get; set; }
+        public string MealType { get; set; }
         public string Status { get; set; }
         public string CategoryBvin { get; set; }
         public string BundleBvin { get; set; }
