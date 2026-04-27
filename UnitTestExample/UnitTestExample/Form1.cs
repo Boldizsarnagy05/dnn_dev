@@ -11,7 +11,6 @@ using UnitTestExample.Controllers;
 
 namespace UnitTestExample
 {
-// commit kipróbálása, hogy látom-e online
     public partial class Form1 : Form
     {
         private AccountController _controller = new AccountController();
