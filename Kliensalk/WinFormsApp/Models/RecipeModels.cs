@@ -158,20 +158,22 @@ namespace NaturaCo.RecipeEditor.Models
     // GET /RecipeSync/Load?id={id} vegpont valasza - teljes recept szerkeszteshez
     public class RecipeLoadResult
     {
-        public bool                      Success       { get; set; }
-        public string                    Message       { get; set; }
-        public int                       RecipeId      { get; set; }
-        public string                    RecipeName    { get; set; }
-        public string                    Description   { get; set; }
-        public string                    Category      { get; set; } // Reggeli / Ebéd / Vacsora / Nassolnivaló
-        public string                    Steps         { get; set; }
-        public int                       Servings      { get; set; }
-        public int                       PrepTime      { get; set; }
-        public int                       CookTime      { get; set; }
-        public int?                      TotalCalories { get; set; }
-        public string                    Status        { get; set; }
-        public string                    CategoryBvin  { get; set; }
-        public string                    BundleBvin    { get; set; }
-        public List<RecipeIngredientDto> Ingredients   { get; set; } = new List<RecipeIngredientDto>();
+        public bool                      Success          { get; set; }
+        public string                    Message          { get; set; }
+        public int                       RecipeId         { get; set; }
+        public string                    RecipeName       { get; set; }
+        public string                    ShortDescription { get; set; }
+        public string                    Description      { get; set; }
+        public string                    Category         { get; set; } // Reggeli / Ebéd / Vacsora / Nassolnivaló
+        public string                    Steps            { get; set; }
+        public int                       Servings         { get; set; }
+        public int                       PrepTime         { get; set; }
+        public int                       CookTime         { get; set; }
+        public int?                      TotalCalories    { get; set; }
+        public decimal?                  EstimatedCost    { get; set; }
+        public string                    Status           { get; set; }
+        public string                    CategoryBvin     { get; set; }
+        public string                    BundleBvin       { get; set; }
+        public List<RecipeIngredientDto> Ingredients      { get; set; } = new List<RecipeIngredientDto>();
     }
 }

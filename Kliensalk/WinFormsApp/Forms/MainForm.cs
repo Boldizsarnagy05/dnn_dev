@@ -309,6 +309,8 @@ namespace NaturaCo.RecipeEditor.Forms
                     LinkedProductPrice = i.LinkedProductPrice,
                     PricePerGram       = i.PricePerGram,
                     CaloriesPer100g    = i.CaloriesPer100g,
+                    PackageQuantity    = i.PackageQuantity,
+                    PackageUnit        = i.PackageUnit,
                     SortOrder          = i.SortOrder
                 }).ToList()
             };
@@ -357,27 +359,32 @@ namespace NaturaCo.RecipeEditor.Forms
         {
             LoadRecipeIntoForm(new Recipe
             {
-                RecipeID        = r.RecipeId,
-                RecipeName      = r.RecipeName   ?? string.Empty,
-                Description     = r.Description  ?? string.Empty,
-                Category        = r.Category     ?? string.Empty,
-                ShortDescription= r.Category     ?? string.Empty,
-                Steps           = r.Steps        ?? string.Empty,
-                Servings        = r.Servings > 0 ? r.Servings : 1,
-                PrepTimeMinutes = r.PrepTime,
-                CookTimeMinutes = r.CookTime,
-                TotalCalories   = r.TotalCalories,
-                Status          = r.Status       ?? "Draft",
-                CategoryBvin    = r.CategoryBvin ?? string.Empty,
-                BundleBvin      = r.BundleBvin   ?? string.Empty,
-                Ingredients     = (r.Ingredients ?? new List<RecipeIngredientDto>())
+                RecipeID         = r.RecipeId,
+                RecipeName       = r.RecipeName       ?? string.Empty,
+                ShortDescription = r.ShortDescription ?? string.Empty,
+                Description      = r.Description      ?? string.Empty,
+                Category         = r.Category         ?? string.Empty,
+                Steps            = r.Steps            ?? string.Empty,
+                Servings         = r.Servings > 0 ? r.Servings : 1,
+                PrepTimeMinutes  = r.PrepTime,
+                CookTimeMinutes  = r.CookTime,
+                TotalCalories    = r.TotalCalories,
+                EstimatedCost    = r.EstimatedCost,
+                Status           = r.Status           ?? "Draft",
+                CategoryBvin     = r.CategoryBvin      ?? string.Empty,
+                BundleBvin       = r.BundleBvin        ?? string.Empty,
+                Ingredients      = (r.Ingredients ?? new List<RecipeIngredientDto>())
                     .Select(i => new RecipeIngredient
                     {
-                        IngredientName = i.ProductName,
-                        Amount         = i.Quantity,
-                        Unit           = i.Unit,
-                        ProductBvin    = i.ProductBvin,
-                        SortOrder      = i.SortOrder
+                        IngredientName     = i.ProductName,
+                        Amount             = i.Quantity,
+                        Unit               = i.Unit,
+                        ProductBvin        = i.ProductBvin,
+                        SortOrder          = i.SortOrder,
+                        LinkedProductPrice = i.Price,
+                        CaloriesPer100g    = i.Calories,
+                        PackageQuantity    = i.PackageQuantity,
+                        PackageUnit        = i.PackageUnit
                     }).ToList()
             });
         }
