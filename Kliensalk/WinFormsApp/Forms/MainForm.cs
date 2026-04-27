@@ -479,6 +479,26 @@ namespace NaturaCo.RecipeEditor.Forms
                 AddIngredient(product);
         }
 
+        private void btnAddCustomIngredient_Click(object sender, EventArgs e)
+        {
+            using (var dlg = new CustomIngredientDialog())
+            {
+                if (dlg.ShowDialog(this) != DialogResult.OK) return;
+
+                var ingredient = new RecipeIngredient
+                {
+                    IngredientName = dlg.IngredientName,
+                    Amount         = dlg.Amount,
+                    Unit           = dlg.Unit,
+                    SortOrder      = _currentRecipe.Ingredients.Count + 1
+                };
+
+                _currentRecipe.Ingredients.Add(ingredient);
+                RefreshIngredientGrid();
+                RecalculateTotals();
+            }
+        }
+
         private void AddIngredient(HccProduct product)
         {
             var gramCategory  = IsGramCategory(_currentCategoryBvin);

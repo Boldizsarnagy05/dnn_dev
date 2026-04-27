@@ -45,6 +45,12 @@
     <EmbeddedResource Update="Forms\MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>
+    <Compile Update="Forms\CustomIngredientDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\CustomIngredientDialog.Designer.cs">
+      <DependentUpon>CustomIngredientDialog.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>

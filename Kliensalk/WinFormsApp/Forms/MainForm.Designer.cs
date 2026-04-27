@@ -31,6 +31,7 @@ namespace NaturaCo.RecipeEditor.Forms
         private System.Windows.Forms.Label           lblCatalogHint;
 
         private System.Windows.Forms.Label           lblIngredients;
+        private System.Windows.Forms.Button          btnAddCustomIngredient;
         private System.Windows.Forms.DataGridView    dgvIngredients;
 
         private System.Windows.Forms.Label           lblSteps;
@@ -80,6 +81,7 @@ namespace NaturaCo.RecipeEditor.Forms
             this.lstProducts = new System.Windows.Forms.ListBox();
             this.lblCatalogHint = new System.Windows.Forms.Label();
             this.lblIngredients = new System.Windows.Forms.Label();
+            this.btnAddCustomIngredient = new System.Windows.Forms.Button();
             this.dgvIngredients = new System.Windows.Forms.DataGridView();
             this.lblSteps = new System.Windows.Forms.Label();
             this.txtSteps = new System.Windows.Forms.TextBox();
@@ -309,9 +311,9 @@ namespace NaturaCo.RecipeEditor.Forms
             this.lblCatalogHint.Size = new System.Drawing.Size(408, 30);
             this.lblCatalogHint.TabIndex = 25;
             this.lblCatalogHint.Text = "Dupla kattintás → hozzáadás a recepthez";
-            // 
+            //
             // lblIngredients
-            // 
+            //
             this.lblIngredients.AutoSize = true;
             this.lblIngredients.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
             this.lblIngredients.Location = new System.Drawing.Point(330, 303);
@@ -319,7 +321,16 @@ namespace NaturaCo.RecipeEditor.Forms
             this.lblIngredients.Size = new System.Drawing.Size(145, 32);
             this.lblIngredients.TabIndex = 26;
             this.lblIngredients.Text = "Hozzávalók";
-            // 
+            //
+            // btnAddCustomIngredient
+            //
+            this.btnAddCustomIngredient.Location = new System.Drawing.Point(800, 298);
+            this.btnAddCustomIngredient.Name = "btnAddCustomIngredient";
+            this.btnAddCustomIngredient.Size = new System.Drawing.Size(160, 34);
+            this.btnAddCustomIngredient.TabIndex = 50;
+            this.btnAddCustomIngredient.Text = "+ Egyedi hozzávaló";
+            this.btnAddCustomIngredient.Click += new System.EventHandler(this.btnAddCustomIngredient_Click);
+            //
             // dgvIngredients
             // 
             this.dgvIngredients.AllowUserToAddRows = false;
@@ -499,6 +510,7 @@ namespace NaturaCo.RecipeEditor.Forms
             this.Controls.Add(this.lstProducts);
             this.Controls.Add(this.lblCatalogHint);
             this.Controls.Add(this.lblIngredients);
+            this.Controls.Add(this.btnAddCustomIngredient);
             this.Controls.Add(this.dgvIngredients);
             this.Controls.Add(this.lblSteps);
             this.Controls.Add(this.txtSteps);
