@@ -261,6 +261,7 @@ namespace NaturaCo.RecipeEditor.Forms
                     if (result != null && result.Success)
                     {
                         PopulateFormFromResult(result);
+                        await EnrichIngredientsFromHccAsync();
                         return;
                     }
                 }
@@ -387,6 +388,40 @@ namespace NaturaCo.RecipeEditor.Forms
                         PackageUnit        = i.PackageUnit
                     }).ToList()
             });
+        }
+
+        // Régi receptek betöltésekor feltölti az ár/kalória adatokat HotCakes-ből,
+        // ahol az adatbázisban még nem volt eltárolva (Price=0, CaloriesPer100g=0).
+        private async System.Threading.Tasks.Task EnrichIngredientsFromHccAsync()
+        {
+            if (_currentRecipe == null) return;
+
+            var toEnrich = _currentRecipe.Ingredients
+                .Where(i => !string.IsNullOrEmpty(i.ProductBvin) && i.LinkedProductPrice == 0)
+                .ToList();
+
+            if (toEnrich.Count == 0) return;
+
+            await System.Threading.Tasks.Task.Run(() =>
+            {
+                foreach (var ing in toEnrich)
+                {
+                    try
+                    {
+                        var product = _hccService.FindProduct(ing.ProductBvin);
+                        if (product == null) continue;
+
+                        ing.LinkedProductName  = product.ProductName;
+                        ing.LinkedProductPrice = product.SitePrice;
+                        ing.CaloriesPer100g    = product.CaloriesPer100g;
+                        ing.PricePerGram       = _hccService.GetPricePerGramOrZero(product);
+                    }
+                    catch { /* ha egy termék nem elérhető, továbblépünk */ }
+                }
+            });
+
+            RefreshIngredientGrid();
+            RecalculateTotals();
         }
 
         private void btnNewRecipe_Click(object sender, EventArgs e)
