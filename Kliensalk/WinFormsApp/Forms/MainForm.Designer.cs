@@ -324,9 +324,9 @@ namespace NaturaCo.RecipeEditor.Forms
             //
             // btnAddCustomIngredient
             //
-            this.btnAddCustomIngredient.Location = new System.Drawing.Point(800, 298);
+            this.btnAddCustomIngredient.Location = new System.Drawing.Point(20, 575);
             this.btnAddCustomIngredient.Name = "btnAddCustomIngredient";
-            this.btnAddCustomIngredient.Size = new System.Drawing.Size(160, 34);
+            this.btnAddCustomIngredient.Size = new System.Drawing.Size(290, 34);
             this.btnAddCustomIngredient.TabIndex = 50;
             this.btnAddCustomIngredient.Text = "+ Egyedi hozzávaló";
             this.btnAddCustomIngredient.Click += new System.EventHandler(this.btnAddCustomIngredient_Click);
