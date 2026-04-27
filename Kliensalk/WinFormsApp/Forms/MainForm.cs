@@ -397,7 +397,7 @@ namespace NaturaCo.RecipeEditor.Forms
             if (_currentRecipe == null) return;
 
             var toEnrich = _currentRecipe.Ingredients
-                .Where(i => !string.IsNullOrEmpty(i.ProductBvin) && i.LinkedProductPrice == 0)
+                .Where(i => !string.IsNullOrEmpty(i.ProductBvin))
                 .ToList();
 
             if (toEnrich.Count == 0) return;
