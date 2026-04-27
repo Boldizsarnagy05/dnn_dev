@@ -1,0 +1,282 @@
+@inherits DotNetNuke.Web.Mvc.Framework.DnnWebViewPage<Teszko.ReceptModulRecept_modul.Models.RecipeDetailViewModel>
+
+@using System
+@using System.Globalization
+@using System.Linq
+@using Newtonsoft.Json
+@using DotNetNuke.Web.Mvc.Helpers
+
+@{
+    var ingredientsJson = JsonConvert.SerializeObject(Model.Ingredients.Select(i => new
+    {
+        productBvin = i.ProductBvin,
+        name = i.ProductName,
+        quantity = i.Quantity,
+        unit = i.Unit,
+        calories = i.Calories,
+        price = i.Price,
+        packageQuantity = i.PackageQuantity,
+        packageUnit = i.PackageUnit
+    }));
+}
+
+<div id="RecipeModule-@Dnn.ModuleContext.ModuleId" class="nc-recipes nc-detail" data-recipe>
+    <main class="nc-detail-main">
+        <div class="nc-title-row">
+            <a class="nc-back" href="@Url.Action("Index", "Item")" aria-label="Vissza">&lt;</a>
+            <h1>@Model.Name</h1>
+            <span class="nc-kcal" data-total-kcal>@Model.TotalCalories kcal</span>
+        </div>
+
+        <div class="nc-detail-meta">
+            <span>@(Model.PrepTimeMinutes + Model.CookTimeMinutes) perc</span>
+            <span>@Model.Servings fore keszitve</span>
+        </div>
+
+        <p class="nc-description">@Model.Description</p>
+
+        <section class="nc-serving-box">
+            <div>
+                <span>RECEPTCSOMAG ADAG:</span>
+                <strong><span data-serving-label>@Model.Servings</span> fore</strong>
+            </div>
+            <button class="nc-add-all" type="button" data-add-all>+ Mindent a kosarba</button>
+            <div class="nc-stepper">
+                <button type="button" data-serving-minus aria-label="Adag csokkentese">-</button>
+                <strong data-serving-count>@Model.Servings</strong>
+                <button type="button" data-serving-plus aria-label="Adag novelese">+</button>
+            </div>
+        </section>
+
+        <section class="nc-ingredients">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Osszetevok</th>
+                        <th>Mennyiseg</th>
+                        <th>Kaloria</th>
+                        <th>Tedd a kosarba!</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (var index = 0; index < Model.Ingredients.Count; index++)
+                    {
+                        var item = Model.Ingredients[index];
+                        <tr data-ingredient-row data-index="@index">
+                            <td><span class="nc-dot"></span>@item.ProductName</td>
+                            <td><span data-quantity>@item.Quantity.ToString("0.##", CultureInfo.InvariantCulture)</span> @item.Unit</td>
+                            <td><strong><span data-calories>@item.Calories</span> kcal</strong></td>
+                            <td>
+                                <button class="nc-cart-icon" type="button" data-add-preview="@index" aria-label="@item.ProductName kosar elonezetbe">Kosarba</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </section>
+
+        <div class="nc-recipe-total">
+            Recept osszesen: <strong data-recipe-total>@Model.TotalCalories kcal</strong>
+        </div>
+
+        @if (Model.Steps.Count > 0)
+        {
+            <section class="nc-steps">
+                <h2>Elkeszites</h2>
+                <ol>
+                    @foreach (var step in Model.Steps)
+                    {
+                        <li>@step</li>
+                    }
+                </ol>
+            </section>
+        }
+    </main>
+
+    <aside class="nc-cart-panel">
+        <h2>TAPERTEKE OSSZESEN</h2>
+        <div class="nc-total-card">
+            <span>KALORIA</span>
+            <strong data-panel-kcal>0</strong>
+            <em>kcal</em>
+            <small data-total-help>Adj hozza termekeket a kosarhoz</small>
+        </div>
+
+        <h2>KOSAR ELONEZET</h2>
+        <div class="nc-cart-preview" data-cart-preview>
+            <div class="nc-cart-empty">
+                <span class="nc-empty-icon">+</span>
+                A kosar meg ures.<br />Adj hozza osszetevoket!
+            </div>
+        </div>
+
+        <div class="nc-cart-total">
+            <span>Vegosszeg:</span>
+            <strong><span data-cart-total>0</span> Ft</strong>
+        </div>
+        <button class="nc-add-cart" type="button" data-submit-cart disabled>TERMEKEK KOSARHOZ ADASA</button>
+        <div class="nc-cart-message" data-cart-message aria-live="polite"></div>
+    </aside>
+</div>
+
+<script type="text/javascript">
+    (function () {
+        var root = document.getElementById("RecipeModule-@Dnn.ModuleContext.ModuleId");
+        if (!root) return;
+
+        var originalServings = @Math.Max(Model.Servings, 1);
+        var servings = originalServings;
+        var baseCalories = @Model.TotalCalories;
+        var ingredients = @Html.Raw(ingredientsJson);
+        var preview = {};
+        var postUrl = "@Url.Action("AddProductsToCart", "Item")";
+
+        function money(value) {
+            return Math.round(value).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+        }
+
+        function scaled(value) {
+            return value * servings / originalServings;
+        }
+
+        function formatAmount(value) {
+            return Math.round(value * 100) / 100;
+        }
+
+        function cartQuantity(item) {
+            var needed = scaled(Number(item.quantity || 1));
+            var pack = Number(item.packageQuantity || 0);
+            if (pack > 0) {
+                return Math.max(1, Math.ceil(needed / pack));
+            }
+            return Math.max(1, Math.ceil(needed));
+        }
+
+        function updateServing() {
+            root.querySelector("[data-serving-count]").textContent = servings;
+            root.querySelector("[data-serving-label]").textContent = servings;
+            var recipeCalories = Math.round(scaled(baseCalories));
+            root.querySelector("[data-total-kcal]").textContent = recipeCalories + " kcal";
+            root.querySelector("[data-recipe-total]").textContent = recipeCalories + " kcal";
+
+            Array.prototype.forEach.call(root.querySelectorAll("[data-ingredient-row]"), function (row) {
+                var item = ingredients[Number(row.getAttribute("data-index"))];
+                row.querySelector("[data-quantity]").textContent = formatAmount(scaled(Number(item.quantity || 0)));
+                row.querySelector("[data-calories]").textContent = Math.round(scaled(Number(item.calories || 0)));
+            });
+            renderPreview();
+        }
+
+        function addPreview(index) {
+            var item = ingredients[index];
+            if (!item || !item.productBvin) return;
+            if (!preview[item.productBvin]) {
+                preview[item.productBvin] = { item: item, qty: cartQuantity(item) };
+            } else {
+                preview[item.productBvin].qty += 1;
+            }
+            renderPreview();
+        }
+
+        function addAllPreview() {
+            ingredients.forEach(function (item) {
+                if (!item || !item.productBvin) return;
+                preview[item.productBvin] = { item: item, qty: cartQuantity(item) };
+            });
+            renderPreview();
+        }
+
+        function renderPreview() {
+            var box = root.querySelector("[data-cart-preview]");
+            var submit = root.querySelector("[data-submit-cart]");
+            var keys = Object.keys(preview);
+            if (keys.length === 0) {
+                box.innerHTML = '<div class="nc-cart-empty"><span class="nc-empty-icon">+</span>A kosar meg ures.<br />Adj hozza osszetevoket!</div>';
+                root.querySelector("[data-cart-total]").textContent = "0";
+                root.querySelector("[data-panel-kcal]").textContent = "0";
+                root.querySelector("[data-total-help]").textContent = "Adj hozza termekeket a kosarhoz";
+                submit.disabled = true;
+                return;
+            }
+
+            var total = 0;
+            var calories = 0;
+            box.innerHTML = keys.map(function (key) {
+                var line = preview[key];
+                var price = Number(line.item.price || 0) * line.qty;
+                total += price;
+                calories += Number(line.item.calories || 0) * line.qty;
+                return '<div class="nc-cart-line" data-preview-line="' + key + '">' +
+                    '<button type="button" class="nc-line-remove" data-line-remove="' + key + '" aria-label="Termek torlese">x</button>' +
+                    '<strong class="nc-line-name">' + line.item.name + '</strong>' +
+                    '<div class="nc-line-stepper"><button type="button" data-line-minus="' + key + '">-</button><strong>' + line.qty + '</strong><button type="button" data-line-plus="' + key + '">+</button></div>' +
+                    '<div class="nc-line-summary"><span>' + Math.round(Number(line.item.calories || 0) * line.qty) + ' kcal</span><strong>' + money(price) + ' Ft</strong></div>' +
+                    '</div>';
+            }).join("");
+            root.querySelector("[data-cart-total]").textContent = money(total);
+            root.querySelector("[data-panel-kcal]").textContent = Math.round(calories);
+            root.querySelector("[data-total-help]").textContent = "";
+            submit.disabled = false;
+        }
+
+        root.addEventListener("click", function (event) {
+            var add = event.target.getAttribute("data-add-preview");
+            var plus = event.target.getAttribute("data-line-plus");
+            var minus = event.target.getAttribute("data-line-minus");
+            var remove = event.target.getAttribute("data-line-remove");
+
+            if (event.target.hasAttribute("data-serving-plus")) {
+                servings += 1;
+                updateServing();
+            } else if (event.target.hasAttribute("data-serving-minus")) {
+                servings = Math.max(1, servings - 1);
+                updateServing();
+            } else if (event.target.hasAttribute("data-add-all")) {
+                addAllPreview();
+            } else if (add !== null) {
+                addPreview(Number(add));
+            } else if (plus) {
+                preview[plus].qty += 1;
+                renderPreview();
+            } else if (minus) {
+                preview[minus].qty -= 1;
+                if (preview[minus].qty <= 0) delete preview[minus];
+                renderPreview();
+            } else if (remove) {
+                delete preview[remove];
+                renderPreview();
+            } else if (event.target.hasAttribute("data-submit-cart")) {
+                submitCart();
+            }
+        });
+
+        function submitCart() {
+            var message = root.querySelector("[data-cart-message]");
+            var items = Object.keys(preview).map(function (key) {
+                return { ProductBvin: key, Quantity: preview[key].qty };
+            });
+
+            if (items.length === 0) {
+                message.textContent = "A kosar elonezet ures.";
+                return;
+            }
+
+            message.textContent = "Kosar frissitese...";
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", postUrl, true);
+            xhr.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState !== 4) return;
+                try {
+                    var result = JSON.parse(xhr.responseText);
+                    message.textContent = result.Message || result.message || "Kosar muvelet kesz.";
+                } catch (e) {
+                    message.textContent = xhr.status >= 200 && xhr.status < 300 ? "Kosar muvelet kesz." : "A kosar frissitese nem sikerult.";
+                }
+            };
+            xhr.send(JSON.stringify({ CategoryBvin: "@Model.CategoryBvin", Servings: servings, Items: items }));
+        }
+
+        updateServing();
+    }());
+</script>

@@ -1,0 +1,55 @@
+@inherits DotNetNuke.Web.Mvc.Framework.DnnWebViewPage<Teszko.ReceptModulRecept_modul.Models.RecipeListViewModel>
+
+@using System
+@using DotNetNuke.Web.Mvc.Helpers
+
+@{
+    var filters = new[]
+    {
+        new { Key = "all", Label = "MINDEN" },
+        new { Key = "reggeli", Label = "REGGELI" },
+        new { Key = "ebed", Label = "EBED" },
+        new { Key = "vacsora", Label = "VACSORA" },
+        new { Key = "snack", Label = "SNACKEK" }
+    };
+}
+
+<div id="RecipeModule-@Dnn.ModuleContext.ModuleId" class="nc-recipes">
+    <section class="nc-recipe-list">
+        <h1>Receptek</h1>
+
+        <nav class="nc-filter-bar" aria-label="Recept kategoriak">
+            @foreach (var filter in filters)
+            {
+                var isActive = string.Equals(Model.ActiveMealType, filter.Key, StringComparison.OrdinalIgnoreCase);
+                <a class="nc-filter @(isActive ? "is-active" : "")" href="@Url.Action("Index", "Item", new { mealType = filter.Key })">@filter.Label</a>
+            }
+        </nav>
+
+        @if (Model.Recipes.Count == 0)
+        {
+            <div class="nc-empty">Most nincs publikalt recept ebben a kategoriaban.</div>
+        }
+        else
+        {
+            <div class="nc-card-grid">
+                @foreach (var recipe in Model.Recipes)
+                {
+                    <article class="nc-recipe-card">
+                        <div class="nc-card-head">
+                            <h2>@recipe.Name</h2>
+                            <span class="nc-kcal">@recipe.TotalCalories kcal</span>
+                        </div>
+                        <div class="nc-meta-row">
+                            <span>@(recipe.PrepTimeMinutes + recipe.CookTimeMinutes) perc</span>
+                            <span>@recipe.Servings fore keszitve</span>
+                        </div>
+                        <a class="nc-card-link" href="@Url.Action("Details", "Item", new { id = recipe.CategoryBvin })">
+                            Recept megtekintese <span aria-hidden="true">&gt;</span>
+                        </a>
+                    </article>
+                }
+            </div>
+        }
+    </section>
+</div>
