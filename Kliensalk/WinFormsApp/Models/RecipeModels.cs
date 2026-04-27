@@ -49,9 +49,13 @@ namespace NaturaCo.RecipeEditor.Models
 
         // Csak megjelenitesre / koltsegszamitasra
         public string  LinkedProductName  { get; set; }
-        public decimal LinkedProductPrice { get; set; } // Ft / db (Hotcakes SitePrice)
+        public decimal LinkedProductPrice { get; set; } // Ft / csomag (Hotcakes SitePrice)
         public decimal PricePerGram       { get; set; } // Ft / g - 0 ha nincs gramm-alapu adat
         public decimal CaloriesPer100g    { get; set; } // kcal / 100 g - 0 ha ismeretlen
+
+        // Csomag metaadatok (API-ba kuldendo)
+        public decimal PackageQuantity    { get; set; } // csomag merete (pl. 500)
+        public string  PackageUnit        { get; set; } // csomag egysege (pl. "g", "db")
     }
 
     // -----------------------------------------------------------------------
@@ -83,6 +87,7 @@ namespace NaturaCo.RecipeEditor.Models
     {
         public int?    RecipeId             { get; set; }
         public string  RecipeName           { get; set; }
+        public string  MealType             { get; set; } // Reggeli | Ebéd | Vacsora | Nassolnivaló
         public string  ShortDescription     { get; set; }
         public string  Description          { get; set; }
         public string  Steps                { get; set; }
@@ -104,11 +109,15 @@ namespace NaturaCo.RecipeEditor.Models
 
     public class RecipeIngredientDto
     {
-        public string  ProductBvin { get; set; }
-        public string  ProductName { get; set; }
-        public decimal Quantity    { get; set; }
-        public string  Unit        { get; set; }
-        public int     SortOrder   { get; set; }
+        public string  ProductBvin     { get; set; }
+        public string  ProductName     { get; set; }
+        public decimal Quantity        { get; set; }
+        public string  Unit            { get; set; }
+        public int     SortOrder       { get; set; }
+        public decimal Calories        { get; set; } // kcal / recept-adag (opcionalis)
+        public decimal Price           { get; set; } // Ft / recept-adag (opcionalis)
+        public decimal PackageQuantity { get; set; } // csomag mérete (opcionalis)
+        public string  PackageUnit     { get; set; } // csomag egysége, pl. "g", "db" (opcionalis)
     }
 
     public class PublishRecipeRequest

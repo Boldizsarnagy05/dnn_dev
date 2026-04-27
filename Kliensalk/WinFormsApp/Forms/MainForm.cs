@@ -628,6 +628,7 @@ namespace NaturaCo.RecipeEditor.Forms
             {
                 RecipeId             = r.RecipeID == 0 ? (int?)null : r.RecipeID,
                 RecipeName           = r.RecipeName,
+                MealType             = r.Category ?? string.Empty,
                 ShortDescription     = r.ShortDescription ?? string.Empty,
                 Description          = r.Description ?? string.Empty,
                 Steps                = r.Steps ?? string.Empty,
@@ -646,11 +647,15 @@ namespace NaturaCo.RecipeEditor.Forms
                 PublishAfterSave     = publishAfterSave,
                 Ingredients          = r.Ingredients.Select(i => new RecipeIngredientDto
                 {
-                    ProductBvin = i.ProductBvin,
-                    ProductName = i.IngredientName,
-                    Quantity    = i.Amount,
-                    Unit        = i.Unit,
-                    SortOrder   = i.SortOrder
+                    ProductBvin     = i.ProductBvin,
+                    ProductName     = i.IngredientName,
+                    Quantity        = i.Amount,
+                    Unit            = i.Unit,
+                    SortOrder       = i.SortOrder,
+                    Calories        = CalculateLineCalories(i),
+                    Price           = CalculateLineCost(i),
+                    PackageQuantity = i.PackageQuantity,
+                    PackageUnit     = i.PackageUnit ?? i.Unit
                 }).ToList()
             };
         }
