@@ -8,6 +8,7 @@
     <AssemblyName>NaturaCo.RecipeEditor</AssemblyName>
     <LangVersion>8.0</LangVersion>
     <ApplicationIcon />
+    <ApplicationManifest>app.manifest</ApplicationManifest>
     <StartupObject>NaturaCo.RecipeEditor.Program</StartupObject>
   </PropertyGroup>
 
@@ -16,30 +17,31 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- HotCakes DTO – HotCakes telepítésből másolva:
-         \DesktopModules\Hotcakes\Core\bin\Hotcakes.CommerceDTO.dll -->
+    <!-- .NET Framework 4.8 framework assembly-k, amiket SDK-style csproj nem tesz be automatikusan -->
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Configuration" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- HotCakes DTO + a CommerceDTO altal hivott Hotcakes.Web (RestHelper).
+         Mindketto a HotCakes telepitesbol: \DesktopModules\Hotcakes\Core\bin\ -->
     <Reference Include="Hotcakes.CommerceDTO">
       <HintPath>..\lib\Hotcakes.CommerceDTO.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Hotcakes.Web">
+      <HintPath>..\lib\Hotcakes.Web.dll</HintPath>
       <Private>true</Private>
     </Reference>
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Forms\LoginForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Update="Forms\LoginForm.Designer.cs">
-      <DependentUpon>LoginForm.cs</DependentUpon>
-    </Compile>
     <Compile Update="Forms\MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Update="Forms\MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
-    <EmbeddedResource Update="Forms\LoginForm.resx">
-      <DependentUpon>LoginForm.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Update="Forms\MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>

@@ -3,16 +3,23 @@ using System.Collections.Generic;
 
 namespace NaturaCo.RecipeEditor.Models
 {
-    // Recept fő adatai – megfelel a RecipeRecipes táblának
+    // -----------------------------------------------------------------------
+    // Helyi szerkesztoi modell.
+    //
+    // A klienst sajat editor-allapotaban tartja: a NaturaCo szerver szempontjabol
+    // a recept azonositoja a CategoryBvin (lasd CLIENT_APP_CONTEXT.md - "A recept
+    // domain modellje ebben a projektben"). RecipeID itt csak helyi sorszam, nem
+    // szerver-allapot.
+    // -----------------------------------------------------------------------
     public class Recipe
     {
         public int       RecipeID        { get; set; }
-        public int       PortalID        { get; set; }
         public string    RecipeName      { get; set; }
+        public string    ShortDescription{ get; set; }
         public string    Description     { get; set; }
         public string    Category        { get; set; }
         public string    AuthorName      { get; set; }
-        public string    PreviewImageURL { get; set; }
+        public string    PreviewImageUrl { get; set; }
         public string    Tags            { get; set; }
         public int       Servings        { get; set; }
         public int       PrepTimeMinutes { get; set; }
@@ -20,48 +27,142 @@ namespace NaturaCo.RecipeEditor.Models
         public int?      TotalCalories   { get; set; }
         public string    Steps           { get; set; }
         public string    Status          { get; set; } // Draft | Published | Revoked
-        public int       CreatedByUserID { get; set; }
-        public DateTime  CreatedOnDate   { get; set; }
         public decimal?  EstimatedCost   { get; set; }
 
-        // Bundle hivatkozás – akkor kap értéket, ha a recept publikálva lett
-        // és a bundle létrehozása megvalósult
-        public Guid?     BundleBvin      { get; set; }
+        // A szervertol kapott "horgonyok" - mindket Save utan frissulnek.
+        // Publish / Revoke csak ezekkel hivhato.
+        public string    CategoryBvin    { get; set; }
+        public string    BundleBvin      { get; set; }
 
         public List<RecipeIngredient> Ingredients { get; set; } = new List<RecipeIngredient>();
     }
 
-    // Összetevő – megfelel a RecipeIngredients táblának
+    // Editor-szintu osszetevo - a GridView ezt jeleniti meg.
+    // Sendingkor RecipeIngredientDto-ra kepzodik le.
     public class RecipeIngredient
     {
-        public int     IngredientID   { get; set; }
-        public int     RecipeID       { get; set; }
-        public string  IngredientName { get; set; }
-        public decimal Amount         { get; set; }
-        public string  Unit           { get; set; }
-        public Guid?   ProductID      { get; set; } // hcc_Product.bvin – opcionális
-        public int     SortOrder      { get; set; }
+        public string  IngredientName     { get; set; }
+        public decimal Amount             { get; set; }
+        public string  Unit               { get; set; }
+        public string  ProductBvin        { get; set; } // Hotcakes termek-azonosito (string)
+        public int     SortOrder          { get; set; }
 
-        // Csak megjelenítésre, nem kerül adatbázisba
+        // Csak megjelenitesre / koltsegszamitasra
         public string  LinkedProductName  { get; set; }
-        public decimal LinkedProductPrice { get; set; }
+        public decimal LinkedProductPrice { get; set; } // Ft / db (Hotcakes SitePrice)
+        public decimal PricePerGram       { get; set; } // Ft / g - 0 ha nincs gramm-alapu adat
+        public decimal CaloriesPer100g    { get; set; } // kcal / 100 g - 0 ha ismeretlen
     }
 
-    // HotCakes termék – a REST API válaszából töltődik
+    // -----------------------------------------------------------------------
+    // Hotcakes REST DTO-k (csak a katalogus bongeszesehez)
+    // -----------------------------------------------------------------------
     public class HccProduct
     {
-        public string  Bvin        { get; set; }
-        public string  ProductName { get; set; }
-        public string  Sku         { get; set; }
-        public decimal SitePrice   { get; set; }
-        public string  UrlSlug     { get; set; }
-        public string  ImageSmall  { get; set; }
+        public string  Bvin            { get; set; }
+        public string  ProductName     { get; set; }
+        public string  Sku             { get; set; }
+        public decimal SitePrice       { get; set; }
+        public string  UrlSlug         { get; set; }
+        public string  ImageSmall      { get; set; }
+        public decimal CaloriesPer100g { get; set; } // hcc_Product.CustomProperties / Key=CaloriesPer100g
     }
 
-    // HotCakes kategória – a REST API válaszából töltődik
     public class HccCategory
     {
         public string Bvin { get; set; }
         public string Name { get; set; }
+    }
+
+    // -----------------------------------------------------------------------
+    // NaturaCo RecipeSync API contract (CLIENT_APP_CONTEXT.md alapjan)
+    // POST /DesktopModules/NaturaCo/API/RecipeSync/{Save|Publish|Revoke}
+    // -----------------------------------------------------------------------
+
+    public class SaveRecipeRequest
+    {
+        public int?    RecipeId             { get; set; }
+        public string  RecipeName           { get; set; }
+        public string  ShortDescription     { get; set; }
+        public string  Description          { get; set; }
+        public string  Steps                { get; set; }
+        public string  Tags                 { get; set; }
+        public int     Servings             { get; set; }
+        public int     PrepTimeMinutes      { get; set; }
+        public int     CookTimeMinutes      { get; set; }
+        public int?    TotalCalories        { get; set; }
+        public decimal EstimatedCost        { get; set; }
+        public string  AuthorName           { get; set; }
+        public string  PreviewImageUrl      { get; set; }
+        public string  Status               { get; set; }
+        public string  CategoryBvin         { get; set; }
+        public string  BundleBvin           { get; set; }
+        public bool    CreateOrUpdateBundle { get; set; }
+        public bool    PublishAfterSave     { get; set; }
+        public List<RecipeIngredientDto> Ingredients { get; set; } = new List<RecipeIngredientDto>();
+    }
+
+    public class RecipeIngredientDto
+    {
+        public string  ProductBvin { get; set; }
+        public string  ProductName { get; set; }
+        public decimal Quantity    { get; set; }
+        public string  Unit        { get; set; }
+        public int     SortOrder   { get; set; }
+    }
+
+    public class PublishRecipeRequest
+    {
+        public int?   RecipeId     { get; set; }
+        public string CategoryBvin { get; set; }
+        public string BundleBvin   { get; set; }
+    }
+
+    public class RevokeRecipeRequest
+    {
+        public int?   RecipeId     { get; set; }
+        public string CategoryBvin { get; set; }
+        public string BundleBvin   { get; set; }
+    }
+
+    public class RecipeSyncResult
+    {
+        public bool         Success      { get; set; }
+        public int?         RecipeId     { get; set; }
+        public string       CategoryBvin { get; set; }
+        public string       BundleBvin   { get; set; }
+        public string       Status       { get; set; }
+        public string       Message      { get; set; }
+        public List<string> Errors       { get; set; } = new List<string>();
+    }
+
+    // GET /RecipeSync/List vegpont valasza - egy-egy sor a receptlistaban
+    public class RecipeListItem
+    {
+        public int    RecipeId     { get; set; }
+        public string RecipeName   { get; set; }
+        public string Status       { get; set; }
+        public string CategoryBvin { get; set; }
+        public string BundleBvin   { get; set; }
+    }
+
+    // GET /RecipeSync/Load?id={id} vegpont valasza - teljes recept szerkeszteshez
+    public class RecipeLoadResult
+    {
+        public bool                      Success       { get; set; }
+        public string                    Message       { get; set; }
+        public int                       RecipeId      { get; set; }
+        public string                    RecipeName    { get; set; }
+        public string                    Description   { get; set; }
+        public string                    Category      { get; set; } // Reggeli / Ebéd / Vacsora / Nassolnivaló
+        public string                    Steps         { get; set; }
+        public int                       Servings      { get; set; }
+        public int                       PrepTime      { get; set; }
+        public int                       CookTime      { get; set; }
+        public int?                      TotalCalories { get; set; }
+        public string                    Status        { get; set; }
+        public string                    CategoryBvin  { get; set; }
+        public string                    BundleBvin    { get; set; }
+        public List<RecipeIngredientDto> Ingredients   { get; set; } = new List<RecipeIngredientDto>();
     }
 }

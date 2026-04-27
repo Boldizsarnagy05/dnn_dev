@@ -9,131 +9,133 @@ using NaturaCo.RecipeEditor.Models;
 
 namespace NaturaCo.RecipeEditor.Services
 {
-    // Saját DNN Web API hívások – recept CRUD és publikálás
-    // Alap URL: https://naturaco.hu/api/RecipeModule
+    // NaturaCo DNN modul HTTP klienseje.
+    //
+    // Vegpontok (CLIENT_APP_CONTEXT.md):
+    //   POST {baseUrl}/DesktopModules/NaturaCo/API/RecipeSync/Save
+    //   POST {baseUrl}/DesktopModules/NaturaCo/API/RecipeSync/Publish
+    //   POST {baseUrl}/DesktopModules/NaturaCo/API/RecipeSync/Revoke
+    //
+    // A controller jelenleg AllowAnonymous, ezert sima HTTP POST eleg, nincs
+    // sem RequestVerificationToken, sem auth header.
     public class RecipeApiService
     {
+        private const string BasePath = "/DesktopModules/NaturaCo/API/RecipeSync";
+
         private readonly HttpClient _http;
         private readonly string     _baseUrl;
 
         public RecipeApiService(string baseUrl)
         {
+            if (string.IsNullOrWhiteSpace(baseUrl))
+                throw new ArgumentException("NaturaCoApiUrl nincs konfiguralva.", nameof(baseUrl));
+
             _baseUrl = baseUrl.TrimEnd('/');
-            _http    = new HttpClient();
+            _http    = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
             _http.DefaultRequestHeaders.Accept
                  .Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
         // ------------------------------------------------------------------
-        // Autentikáció – DNN JWT token
+        // Save / Publish / Revoke
         // ------------------------------------------------------------------
 
-        public async Task LoginAsync(string username, string password)
+        public Task<RecipeSyncResult> SaveAsync(SaveRecipeRequest request)
         {
-            var payload = JsonConvert.SerializeObject(new { u = username, p = password });
-            var content = new StringContent(payload, Encoding.UTF8, "application/json");
+            return PostJsonAsync("/Save", request);
+        }
 
-            var response = await _http.PostAsync(
-                $"{_baseUrl}/api/JWT/Login", content);
+        public Task<RecipeSyncResult> PublishAsync(PublishRecipeRequest request)
+        {
+            return PostJsonAsync("/Publish", request);
+        }
 
-            response.EnsureSuccessStatusCode();
-
-            var json  = await response.Content.ReadAsStringAsync();
-            var token = JsonConvert.DeserializeObject<dynamic>(json);
-
-            _http.DefaultRequestHeaders.Authorization =
-                new AuthenticationHeaderValue("Bearer", (string)token.accessToken);
+        public Task<RecipeSyncResult> RevokeAsync(RevokeRecipeRequest request)
+        {
+            return PostJsonAsync("/Revoke", request);
         }
 
         // ------------------------------------------------------------------
-        // Recept CRUD
+        // Lista / Betoltes
         // ------------------------------------------------------------------
 
-        public async Task<List<Recipe>> GetRecipesAsync()
+        public async Task<List<RecipeListItem>> GetRecipesAsync()
         {
-            var response = await _http.GetAsync($"{_baseUrl}/Recipe");
-            response.EnsureSuccessStatusCode();
-
-            var json = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<List<Recipe>>(json);
+            try
+            {
+                var url  = _baseUrl + BasePath + "/List";
+                var json = await _http.GetStringAsync(url);
+                return JsonConvert.DeserializeObject<List<RecipeListItem>>(json)
+                       ?? new List<RecipeListItem>();
+            }
+            catch
+            {
+                return new List<RecipeListItem>();
+            }
         }
 
-        public async Task<Recipe> GetRecipeAsync(int recipeId)
+        public async Task<RecipeLoadResult> LoadRecipeAsync(int recipeId)
         {
-            var response = await _http.GetAsync($"{_baseUrl}/Recipe/{recipeId}");
-            response.EnsureSuccessStatusCode();
-
-            var json = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<Recipe>(json);
+            try
+            {
+                var url  = _baseUrl + BasePath + "/Load?id=" + recipeId;
+                var json = await _http.GetStringAsync(url);
+                return JsonConvert.DeserializeObject<RecipeLoadResult>(json)
+                       ?? new RecipeLoadResult { Success = false, Message = "Ures szerver-valasz." };
+            }
+            catch (Exception ex)
+            {
+                return new RecipeLoadResult { Success = false, Message = ex.Message };
+            }
         }
 
-        public async Task<Recipe> SaveRecipeAsync(Recipe recipe)
+        // ------------------------------------------------------------------
+        // Belso segedek
+        // ------------------------------------------------------------------
+
+        private async Task<RecipeSyncResult> PostJsonAsync(string action, object body)
         {
-            var payload = JsonConvert.SerializeObject(recipe);
-            var content = new StringContent(payload, Encoding.UTF8, "application/json");
+            var url     = _baseUrl + BasePath + action;
+            var json    = JsonConvert.SerializeObject(body);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             HttpResponseMessage response;
-
-            if (recipe.RecipeID == 0)
+            try
             {
-                // Új recept
-                response = await _http.PostAsync($"{_baseUrl}/Recipe", content);
+                response = await _http.PostAsync(url, content);
             }
-            else
+            catch (Exception ex)
             {
-                // Meglévő recept frissítése
-                response = await _http.PutAsync($"{_baseUrl}/Recipe/{recipe.RecipeID}", content);
+                // Halozati hiba - egysegesen RecipeSyncResult-ben adjuk vissza,
+                // hogy a UI ugyanazt a Message/Errors mezot tudja megjeleniteni.
+                return new RecipeSyncResult
+                {
+                    Success = false,
+                    Message = "A szerver nem elerheto: " + ex.Message
+                };
             }
 
-            response.EnsureSuccessStatusCode();
+            var responseBody = await response.Content.ReadAsStringAsync();
 
-            var json = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<Recipe>(json);
-        }
+            // 200 vagy 400 eseten is RecipeSyncResult-et varunk
+            // (lasd CLIENT_APP_CONTEXT.md "Hibas valaszok" reszt).
+            RecipeSyncResult result = null;
+            if (!string.IsNullOrWhiteSpace(responseBody))
+            {
+                try { result = JsonConvert.DeserializeObject<RecipeSyncResult>(responseBody); }
+                catch { /* nem JSON - eldobjuk */ }
+            }
 
-        public async Task DeleteRecipeAsync(int recipeId)
-        {
-            var response = await _http.DeleteAsync($"{_baseUrl}/Recipe/{recipeId}");
-            response.EnsureSuccessStatusCode();
-        }
+            if (result != null)
+                return result;
 
-        // ------------------------------------------------------------------
-        // Publikálás – státusz váltás Draft → Published
-        // A bundle létrehozás itt történne meg, de egyelőre kommentálva van
-        // ------------------------------------------------------------------
-
-        public async Task<Recipe> PublishRecipeAsync(int recipeId)
-        {
-            // Státusz frissítés Published-re
-            var response = await _http.PostAsync(
-                $"{_baseUrl}/Recipe/{recipeId}/publish", null);
-
-            response.EnsureSuccessStatusCode();
-
-            var json = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<Recipe>(json);
-
-            // Bundle létrehozás – EGYELŐRE KOMMENTÁLVA
-            // Akkor aktiválható, ha a saját DNN Web API bundle végpontja elkészül
-            // A HotCakes REST API nem támogatja a bundle műveletet (nincs IsBundle a DTO-ban)
-            //
-            // await _http.PostAsync($"{_baseUrl}/Recipe/{recipeId}/bundle", null);
-        }
-
-        // ------------------------------------------------------------------
-        // Visszavonás – Published → Revoked
-        // ------------------------------------------------------------------
-
-        public async Task RevokeRecipeAsync(int recipeId)
-        {
-            var response = await _http.PostAsync(
-                $"{_baseUrl}/Recipe/{recipeId}/revoke", null);
-
-            response.EnsureSuccessStatusCode();
-
-            // Bundle inaktiválás – EGYELŐRE KOMMENTÁLVA
-            //
-            // await _http.DeleteAsync($"{_baseUrl}/Recipe/{recipeId}/bundle");
+            // Nem ertelmezheto valasz - csomagoljunk be egy hibaobjektumot.
+            return new RecipeSyncResult
+            {
+                Success = false,
+                Message = $"Varatlan szerver-valasz (HTTP {(int)response.StatusCode}).",
+                Errors  = { string.IsNullOrWhiteSpace(responseBody) ? "(ures body)" : responseBody }
+            };
         }
     }
 }

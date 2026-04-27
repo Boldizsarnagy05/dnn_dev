@@ -1,142 +1,329 @@
-# NaturaCo Recept Szerkesztő – WinForms kliens
+# NaturaCo Recipe Editor – kliens app context
 
-Ez a dokumentum leírja a `WinFormsApp` projekt felépítését és azt, hogy melyik összetevő miért felelős. A kliens célja, hogy a NaturaCo szerkesztőinek asztali felületet biztosítson receptek készítéséhez, mentéséhez, publikálásához és visszavonásához – miközben a HotCakes webshop termékkatalógusából válogatnak összetevőket.
+## 1. Mire valo ez a projekt
 
-## Architektúra áttekintés
+Ez a WinForms alkalmazas a NaturaCo (DNN + Hotcakes) webshop **kulso szerkesztoi
+eszkoze**. Egy szerkeszto / katalogus-felelos a sajat gepen szerkesztheti meg a
+recepteket, hozzakothet Hotcakes-termekeket mint hozzavalokat, majd egyetlen
+gombnyomassal feltoltheti, publikalhatja, vagy visszavonhatja a webshopbol.
 
-A rendszer háromrétegű:
+Szerveroldalon a recept egy **Hotcakes category**-kent jelenik meg, a
+hozzavalok pedig a category-product kapcsolatokon keresztul kerulnek a
+recepthez. Ez a leforditasi reteg a NaturaCo sajat DNN moduljaban
+(`/DesktopModules/NaturaCo/API/RecipeSync/`) tortenik – a kliens csak egy
+egyszeru JSON contractot lat.
 
-1. **WinForms kliens** (ez a projekt) – szerkesztői felület, csak HTTP-n keresztül kommunikál.
-2. **HotCakes REST API** (`https://naturaco.hu` alá telepítve) – termék- és kategórialekérdezésekhez.
-3. **Saját DNN Web API** (`/api/RecipeModule/*`) – recept CRUD, publikálás, visszavonás, későbbiekben bundle kezelés.
+A reszletes uzleti es szerveroldali kontextus forrasa:
+`/Users/dorituran/Downloads/CLIENT_APP_CONTEXT.md`. Az itteni implementacio
+pontosan azt a contractot koveti.
 
-A kliens **soha nem ér hozzá közvetlenül az adatbázishoz**. Minden írás és olvasás API-n keresztül történik, mert:
-- az SQL Server 1433-as portja nyilvános interneten nem elérhető,
-- a JWT-alapú jogosultságkezelés DNN oldalon van megvalósítva,
-- így a kliens telepítés nélkül bárhonnan használható, ahol internet van.
+## 2. Architektura egy abran
 
 ```
-WinFormsApp ── HTTP ──▶ HotCakes REST API  ─┐
-            ── HTTP ──▶ DNN Web API         ├─▶ SQL Server (naturaco)
-                        (RecipeModule)      ┘
++-----------------------+     HTTP POST JSON     +---------------------------+
+|   WinForms kliens     | ---------------------> | DNN modul (NaturaCo)      |
+|   (ez a projekt)      |    /RecipeSync/Save    |  - validacio              |
+|                       |    /RecipeSync/Publish |  - Hotcakes store context |
+|                       |    /RecipeSync/Revoke  |  - category create/update |
++-----------+-----------+                        |  - ingredient kapcsolatok |
+            |                                    |  - bundle (opcionalis)    |
+            |  Hotcakes REST                     +-------------+-------------+
+            |  (csak olvasas:                                  |
+            |   kategoriak, termekek)                          v
+            v                                          +---------------+
+   +-------------------+                               | Hotcakes      |
+   | Hotcakes store    | <---------------------------- | Commerce DB   |
+   +-------------------+                               +---------------+
 ```
 
-## Projektstruktúra
+Ket kulonbozo szerveroldali API-t hivunk:
+
+- **Hotcakes REST** (`/DesktopModules/Hotcakes/Core/REST/v1`) – csak olvasas a
+  termekkatalogus bongeszesehez. API key + storeUrl.
+- **NaturaCo RecipeSync** (`/DesktopModules/NaturaCo/API/RecipeSync`) – minden
+  receptmuvelet (Save / Publish / Revoke). Jelenleg `AllowAnonymous`, nincs
+  auth.
+
+## 3. Mappastruktura
 
 ```
 WinFormsApp/
-├── Program.cs                 ← alkalmazás belépési pont
-├── Models/
-│   └── RecipeModels.cs        ← DTO-k: Recipe, RecipeIngredient, HccProduct, HccCategory
-├── Services/
-│   ├── HotCakesService.cs     ← HotCakes REST API wrapper (olvasás)
-│   └── RecipeApiService.cs    ← saját DNN Web API wrapper (írás + auth)
-└── Forms/
-    ├── LoginForm.cs           ← DNN JWT bejelentkezés
-    └── MainForm.cs            ← recept szerkesztő fő ablak
+  App.config                 - StoreUrl, ApiKey, NaturaCoApiUrl
+  Program.cs                 - belepesi pont, DI-szeru bekotes
+  Forms/
+    MainForm.cs              - editor logika, validacio, API hivasok
+    MainForm.Designer.cs     - layout (NEM modositando)
+    MainForm.resx
+  Models/
+    RecipeModels.cs          - editor modell + RecipeSync DTO-k
+  Services/
+    HotCakesService.cs       - Hotcakes REST wrapper (kategoriak, termekek)
+    RecipeApiService.cs      - NaturaCo RecipeSync HTTP kliens
+  ../lib/Hotcakes.CommerceDTO.dll   - Hotcakes telepitobol bemasolva
 ```
 
-## Összetevők felelőssége
+## 4. Komponensek felelossege
 
-### `Program.cs` – alkalmazás belépési pont
-- Beállítja a WinForms futtatási környezetet (`EnableVisualStyles`, `SetCompatibleTextRenderingDefault`).
-- Tárolja a konfigurációs konstansokat: `StoreUrl`, `ApiKey` (HotCakes), `DnnApiUrl`.
-- Megnyitja a `LoginForm`-ot; ha sikeres a bejelentkezés, példányosítja a két service-t, és elindítja a `MainForm`-ot.
-- **Miért külön lépésben?** A `RecipeApiService`-t csak akkor hozzuk létre, ha van érvényes JWT token – így a `MainForm` már hitelesített állapotban kapja meg.
+### 4.1 `Program.cs`
+- Beolvassa az App.config kulcsait.
+- Letrehozza a ket service-t (`HotCakesService`, `RecipeApiService`).
+- Atadja oket a MainForm konstruktoranak (sima konstruktor injection).
+- **Korai kilepes**, ha a `NaturaCoApiUrl` nincs konfiguralva – nem akarunk
+  null reference-t a Save kozben.
 
-### `Models/RecipeModels.cs` – adatátviteli objektumok
-Négy osztályt tartalmaz:
+### 4.2 `App.config`
+Harom kulcs:
+- `StoreUrl` – a Hotcakes katalogus host-ja (pl. `https://naturaco.hu`).
+- `ApiKey` – Hotcakes Admin -> Configuration -> API Key.
+- `NaturaCoApiUrl` – a NaturaCo DNN modul host-ja **path nelkul**
+  (pl. `http://localhost`, `http://20.107.242.91`, `https://naturaco.hu`).
+  A `/DesktopModules/NaturaCo/API/RecipeSync/...` szakaszt a kliens fuzi
+  hozza – local es remote kornyezetben ugyanaz a kod fut, csak a host
+  cserelodik (CLIENT_APP_CONTEXT.md – "Hogyan lehet remoteban hasznalni").
 
-| Osztály | Felelősség | Forrás/cél |
-|---|---|---|
-| `Recipe` | Recept fejadatok + összetevők listája. | DNN Web API (`RecipeRecipes` tábla). |
-| `RecipeIngredient` | Egy összetevő sor (név, mennyiség, mértékegység, opcionális HotCakes termékhivatkozás). | DNN Web API (`RecipeIngredients` tábla). |
-| `HccProduct` | HotCakes termék leképezett formája (`bvin`, név, ár, slug, kép). | HotCakes REST API. |
-| `HccCategory` | HotCakes kategória (`bvin`, név). | HotCakes REST API. |
+### 4.3 `Models/RecipeModels.cs`
+Ket fajta tipus el itt egymas mellett:
 
-Fontos mezők:
-- `Recipe.Status` – `"Draft" | "Published" | "Revoked"` háromállapotú életciklus.
-- `Recipe.BundleBvin` – ha a publikáláskor bundle is létrejön, ide kerül a hivatkozás (egyelőre null).
-- `Recipe.EstimatedCost` – a kliens számolja újra minden összetevő-változáskor.
-- `RecipeIngredient.ProductID` – nullable `Guid`, mert nem minden összetevő köthető webshop termékhez (pl. „só ízlés szerint").
-- `RecipeIngredient.LinkedProductName / LinkedProductPrice` – csak megjelenítésre, **nem kerül adatbázisba**.
+**(a) Editor / UI modell** – csak a kliens szamara letezik:
+- `Recipe` – a szerkesztoi munkakopia. Tartalmazza az osszes form-mezo-t es
+  ket szerveroldali "horgonyt": `CategoryBvin`, `BundleBvin`. Ezeket Save utan
+  toltjuk fel a szerver valaszabol.
+- `RecipeIngredient` – a `dgvIngredients` GridView modellje. `ProductBvin`-t
+  is tarol, hogy a Save-kor a ProductBvin-en alapulo DTO-ra tudjuk leforditani.
+- `HccProduct`, `HccCategory` – csak a katalogusbongeszeshez.
 
-### `Services/HotCakesService.cs` – HotCakes REST API wrapper
-A `Hotcakes.CommerceDTO.v1.Client.Api` osztályra épülő vékony absztrakciós réteg, kizárólag **olvasásra**.
+**(b) NaturaCo RecipeSync DTO-k** – pontosan a szerveroldali contract
+megfeleloi (CLIENT_APP_CONTEXT.md – "Save vegpont reszletesen"):
+- `SaveRecipeRequest`
+- `RecipeIngredientDto`
+- `PublishRecipeRequest`
+- `RevokeRecipeRequest`
+- `RecipeSyncResult`
 
-Publikus metódusok:
-- `GetCategories()` – összes kategória lekérése névsorba rendezve.
-- `GetProductsByCategory(bvin, page, pageSize)` – kategóriához tartozó termékek lapozva.
-- `GetAllProducts(page, pageSize)` – teljes termékkatalógus lapozva.
-- `FindProduct(bvin)` / `FindProductBySlug(slug)` – egy termék pontos lekérése.
-- `CalculateEstimatedCost(ingredients)` – ár-összegzés szerveroldali adatok alapján (jelenleg a kliens cache-ből dolgozik, ezért opcionális).
+A ket reteg szandekosan kulon van:
+- a UI / editor sajat allapotat tudja szabadon valtoztatni anelkul, hogy a
+  szerveroldali contract elromlana,
+- es forditva: a contract bovulhet anelkul, hogy az editor logika serulne.
 
-**Bundle-kezelés szándékosan kikommentálva**: a HotCakes REST API ProductDTO-ja nem tartalmaz `IsBundle` mezőt, és nincs `BundledProductsCreate()` metódus az `Api` osztályban. A `hcc_BundledProducts` tábla csak belső SDK-n vagy közvetlen SQL-en keresztül tölthető – ezt a DNN Web API fogja lefedni, ha az oldal elkészül. A kód eleje részletesen dokumentálja a hivatkozást a `Hotcakes.CommerceDTO.dll`-re.
+### 4.4 `Services/HotCakesService.cs`
+Vekony wrapper a Hotcakes `Hotcakes.CommerceDTO.v1.Client.Api` osztalya korul:
+- `GetCategories()` – kategoriak listaja a `cmbCategory`-be.
+  **Hidden=true** kategoriak (a NaturaCo modul ilyenkent hozza letre a
+  recepteket) ki vannak szurve – csak valodi termekkategoriakat latunk.
+- `GetProductsByCategory(bvin)` – egy kategoria termekei a `lstProducts`-ba.
+- `FindProduct(bvin)` – egy termek lekerdezese (ar / nev visszaolvasas).
+- `GetPricePerGramOrZero(product)` – a Hotcakes
+  `/productoptions?byproduct={bvin}` vegpontjabol kiolvassa a "Csomag:"
+  opcio default item-jet (`IsDefault=true`), abbol grammot parsol
+  (`500 g`, `1 kg`), es Ft/g-ot szamol. Ha nincs ertelmezheto adat,
+  0-t ad vissza es a szamolas darab-logikara esik vissza.
+- `CalculateEstimatedCost(...)` – tartalek aggregator, ha nincs cache-elt
+  ar (az editor egyebkent a `LinkedProductPrice` / `PricePerGram` cache-bol szamol).
 
-### `Services/RecipeApiService.cs` – saját DNN Web API wrapper
-`HttpClient`-re épülő szolgáltatás, minden írási műveletért és autentikációért felelős.
+Ez a service kizarolag **olvas**, ide nem irunk receptet.
 
-Publikus metódusok:
-- `LoginAsync(user, pass)` – DNN JWT token megszerzése (`/api/JWT/Login`), majd minden további kérésbe automatikusan beállítja a `Bearer` fejlécet.
-- `GetRecipesAsync()` / `GetRecipeAsync(id)` – recept lista és egy recept lekérése.
-- `SaveRecipeAsync(recipe)` – új recept esetén `POST`, meglévőnél `PUT`. A szerver által visszaadott példányt adja vissza (így az új `RecipeID` is bekerül a kliens állapotba).
-- `DeleteRecipeAsync(id)` – fizikai törlés (ritkán használt, jellemzően csak tervezetre).
-- `PublishRecipeAsync(id)` – státuszváltás `Draft → Published`. A kommentelt kódban látszik, hogy ide fog majd bekerülni a bundle-létrehozás hívása.
-- `RevokeRecipeAsync(id)` – státuszváltás `Published → Revoked`.
+### 4.5 `Services/RecipeApiService.cs`
+A NaturaCo modul HTTP kliense:
+- `SaveAsync(SaveRecipeRequest)` -> `RecipeSyncResult`
+- `PublishAsync(PublishRecipeRequest)` -> `RecipeSyncResult`
+- `RevokeAsync(RevokeRecipeRequest)` -> `RecipeSyncResult`
 
-**Miért külön service-ben van az auth?** Mert a JWT token a `HttpClient` default header-ében él, így példányonként kell kezelni. A `LoginForm` hozza létre a példányt, és átadja a `MainForm`-nak.
+Egysegesen kezeli a sikert, a 400-as validacios hibakat es a halozati
+hibakat: minden esetben `RecipeSyncResult`-et ad vissza, igy a UI mindig
+ugyanazt a `Message` + `Errors` parost tudja mutatni
+(CLIENT_APP_CONTEXT.md – "Hibas valaszok").
 
-### `Forms/LoginForm.cs` – bejelentkező ablak
-- Bekéri a felhasználónevet/jelszót, meghívja a `RecipeApiService.LoginAsync`-et.
-- Sikeres belépés után beállítja az `AuthenticatedRecipeService` property-t, és `DialogResult.OK`-val zár.
-- Hiba esetén állapotsort és MessageBox-ot mutat, újraengedélyezi a Belépés gombot.
-- **Miért `DialogResult.OK` mintázat?** A `Program.cs` így tud könnyen különbséget tenni „sikeres belépés" és „mégsem" között, anélkül hogy globális állapotot kezelnénk.
+### 4.6 `Forms/MainForm.cs`
+A teljes szerkesztoi workflow itt el. Felelos:
+- a Hotcakes katalogus betolteseert es szuregyteseert,
+- a hozzavalok hozzaadasaert (lstProducts dupla kattintas -> AddIngredient),
+- a `dgvIngredients` 4-oszlopos beallitasaert (Hozzavalo / Mennyiseg /
+  Mertekegyseg / Sorrend) – az egyeb mezok (ProductBvin, LinkedProductPrice,
+  PricePerGram) modellben tarolodnak, de nem latszanak,
+- a **kategoria-fuggo Unit es ar-logikaert**: a `GramCategoryBvins` halmazba
+  rakott Hotcakes kategoriak (jelenleg Feherjeforras es Rost es vitamin)
+  termekei automatikusan `Unit="g"` es `100` alapertekkel kerulnek a gridbe;
+  ezekre `_hccService.GetPricePerGramOrZero` szamol Ft/g-ot, igy a koltseg
+  `Amount × Ft/g`. Egyeb kategorianal `Unit="db"` es darab-logika fut
+  (`Amount × Ft/db`),
+- a grid CellValueChanged eventjevel az ar mindig automatikusan ujraszamol,
+  amikor a felhasznalo a Mennyiseget vagy Mertekegyseget atirja,
+- a `Recipe` editor-modell osszerakasaert a form mezoibol (`ReadFormToRecipe`),
+- a **kliens-oldali validacioert** (`ValidateForSave`), amely ugyanazokat a
+  szabalyokat ervenyesiti, mint a szerver:
+  - `RecipeName` kotelezo,
+  - `Servings > 0`,
+  - legalabb 1 hozzavalo,
+  - minden hozzavalo: `ProductBvin` ki van toltve, `Quantity > 0`,
+- a `SaveRecipeRequest` osszerakasaert (`BuildSaveRequest`),
+- a szerver-valasz feldolgozasaert (`ApplyServerResult`):
+  - sikeres mentes -> `CategoryBvin`, `BundleBvin`, `Status` visszairodik az
+    editor-modellbe,
+  - hiba -> `Message` + `Errors` MessageBox-ban,
+- a Publish / Revoke gomb gating-eert: csak ha mar van `CategoryBvin`,
+- a state vizualis jelzeseert (`SetStatus`, `lblStatus`).
 
-### `Forms/MainForm.cs` – fő szerkesztőablak
-Ez az alkalmazás szíve. Felelősségei:
+### 4.7 `Forms/MainForm.Designer.cs`
+A vizualis layoutot tartalmazza. **Ezt a fajlt nem szabad kezzel atszerkeszteni**
+– a felhasznalo egyszeru, lapos, panel nelkuli elrendezest kert. A logika
+kizarolag a `MainForm.cs`-ben modosul, igy a designer gond nelkul ujrageneralhato
+a Visual Studio designerrel is.
 
-1. **Kategória- és termékböngésző** (bal oldali panel):
-   - `MainForm_Load` → `LoadCategoriesAsync` betölti a kategóriákat ComboBoxba.
-   - `cmbCategory_SelectedIndexChanged` → `LoadProductsForCategory` frissíti a terméklistát.
-2. **Összetevők szerkesztése** (középső panel):
-   - `lstProducts_DoubleClick` → `AddIngredient` hozzáadja a receptet a kiválasztott termékkel.
-   - `RefreshIngredientGrid` rajzolja újra a DataGridView-t `SortOrder` szerint.
-   - `RecalculateTotals` frissíti a `Becsült költség` és `Adagonként` címkéket.
-3. **Recept metaadatok** (jobb oldali panel):
-   - `ReadFormToRecipe` átmásolja a TextBox/NumericUpDown értékeket a `_currentRecipe` modellbe.
-4. **Életciklus műveletek** (alsó gombsor):
-   - `btnSaveDraft_Click` – mentés tervezetként (`Status = "Draft"`).
-   - `btnPublish_Click` – megerősítéssel publikálás; a kommentelt részben látszik, hogy a bundle-visszajelzés itt kapna helyet.
-   - `btnRevoke_Click` – megerősítéssel visszavonás.
-5. **Állapotkezelés**: a `_currentRecipe` mező az aktuálisan szerkesztett receptet tartja, a `_allProducts` az utoljára betöltött kategóriát cache-eli.
+## 5. API contract – ahogy a kliens hasznalja
 
-**Miért `async void` az eseménykezelőkben?** Ez a WinForms-ban elfogadott minta: a felhasználói események `void` visszatérésűek, és a `try/catch` blokk minden műveletnél biztosítja, hogy a kivételek MessageBoxban jelenjenek meg, ne szakítsák meg a UI szálat.
+Minden vegpont:
+```
+POST {NaturaCoApiUrl}/DesktopModules/NaturaCo/API/RecipeSync/{Save|Publish|Revoke}
+Content-Type: application/json
+```
 
-## Konfiguráció és függőségek
+### 5.1 Save
+Pelda body (a kliens ezt allitja elo `BuildSaveRequest`-bol):
+```json
+{
+  "RecipeId": null,
+  "RecipeName": "Teszt recept",
+  "ShortDescription": "...",
+  "Description": "...",
+  "Steps": "...",
+  "Tags": "teszt",
+  "Servings": 2,
+  "PrepTimeMinutes": 10,
+  "CookTimeMinutes": 5,
+  "TotalCalories": 250,
+  "EstimatedCost": 1200,
+  "AuthorName": "Tesztelo",
+  "PreviewImageUrl": "",
+  "Status": "Draft",
+  "CategoryBvin": "",
+  "BundleBvin": "",
+  "CreateOrUpdateBundle": false,
+  "PublishAfterSave": false,
+  "Ingredients": [
+    {
+      "ProductBvin": "TEST-PRODUCT-1",
+      "ProductName": "Teszt termek",
+      "Quantity": 1,
+      "Unit": "db",
+      "SortOrder": 1
+    }
+  ]
+}
+```
 
-### NuGet csomagok
-- `Newtonsoft.Json` – JSON szerializáció a `RecipeApiService`-ben.
-- `System.Net.Http` – beépített, de a .NET Framework verziótól függően explicit kellhet.
+Sikeres valasz:
+```json
+{
+  "Success": true,
+  "RecipeId": null,
+  "CategoryBvin": "....",
+  "BundleBvin": "",
+  "Status": "Draft",
+  "Message": "A recept mentese sikeres volt.",
+  "Errors": []
+}
+```
 
-### Lokális referencia
-- `Hotcakes.CommerceDTO.dll` – nem NuGet-en, hanem a HotCakes telepítésből másolandó:
-  `\DesktopModules\Hotcakes\Core\bin\Hotcakes.CommerceDTO.dll`
+A kliens **kotelezoen** elteszi a `CategoryBvin`-t (es ha jott `BundleBvin`-t).
+Nelkuluk a kesobbi Publish / Revoke nem hivhato.
 
-### Konfigurációs pontok (`Program.cs`)
-- `StoreUrl` – HotCakes bolt URL-je (ugyanaz a domain, mint a DNN).
-- `ApiKey` – HotCakes Admin → Configuration → API oldalon generált kulcs.
-- `DnnApiUrl` – a DNN portál alap URL-je (ugyanaz, mint a `StoreUrl`, csak szemantikailag külön).
+### 5.2 Publish / Revoke
+```json
+{
+  "RecipeId": null,
+  "CategoryBvin": "IDE_A_CATEGORY_BVIN",
+  "BundleBvin": ""
+}
+```
 
-Éles telepítéshez ezeket érdemes `App.config`-ba kiszervezni (jelenleg konstansok – fejlesztési fázisban így egyszerűbb).
+A kliens megakadalyozza, hogy `CategoryBvin` nelkul ezek meghivasra
+keruljenek (`btnPublish_Click`, `btnRevoke_Click` elejen).
 
-## Nyitott pontok / jövőbeli bővítés
+## 6. Tipikus szerkesztoi workflow
 
-| Funkció | Állapot | Teendő |
-|---|---|---|
-| Bundle létrehozás publikáláskor | Kommentelve, nem aktív. | DNN Web API oldalán saját végpont (`POST /Recipe/{id}/bundle`) és `hcc_BundledProducts` írás. |
-| Bundle törlés visszavonáskor | Kommentelve, nem aktív. | DNN Web API oldalán `DELETE /Recipe/{id}/bundle`. |
-| Tápértékek (fehérje, szénhidrát, zsír) | Csak `TotalCalories` van. | HotCakes termék custom property mezőkből összegző számítás. |
-| Előnézeti kép feltöltés | `PreviewImageURL` mező létezik, de uploader nincs. | Külön fájl-upload végpont vagy DNN File API integráció. |
-| Recept lista / keresés | `GetRecipesAsync` megvan, UI nincs. | `MainForm`-ra recept-lista panel (open/new). |
-| App.config konfiguráció | Konstansok a `Program.cs`-ben. | `appSettings` szekció + `ConfigurationManager`. |
-| Designer (`.Designer.cs`) fájlok | Nincsenek a repóban, csak a kód mögöttes részek. | Visual Studio generálja újra első megnyitáskor, vagy kézzel pótolni. |
+1. App indul – kategoriak betoltodnek a `cmbCategory`-be.
+2. Felhasznalo kivalaszt egy kategoriat -> `lstProducts` feltoltodik.
+3. Dupla kattintassal hozzaad termekeket a `dgvIngredients`-be.
+4. Kitolti a recept mezoit (nev, leiras, adag, idok, kaloria, stb.).
+5. **Mentes tervezetkent** -> `Save` (Status=Draft, PublishAfterSave=false)
+   -> `CategoryBvin` visszairodik.
+6. (opcionalis) Publikalas -> `Publish`.
+7. (opcionalis kesobb) Visszavonas -> `Revoke`.
+
+## 7. Validacio
+
+Ket retegben validalunk:
+
+- **Kliens** (`ValidateForSave` / btn elejen): azonnali visszajelzes a
+  felhasznalonak, mielott halozatot terhelnenk.
+- **Szerver**: ugyanezeket meg egyszer ellenorzi, hibaknal HTTP 400-zal es
+  `RecipeSyncResult`-tel valaszol.
+
+A ket reteg ugyanazt a halmazt nezi (CLIENT_APP_CONTEXT.md – "Save validacio"):
+- `RecipeName` nem lehet ures,
+- `Servings > 0`,
+- legalabb 1 ingredient,
+- minden ingredienthez kell `ProductBvin` es `Quantity > 0`.
+
+## 8. Hibakezeles
+
+`RecipeApiService` minden valaszt `RecipeSyncResult`-be csomagol, beleertve a
+halozati / parsolasi hibakat is. A UI ennek megfeleloen csak ket agon kezel:
+- `Success == true` -> `Message` (vagy default uzenet) info dialog.
+- `Success == false` -> `Message + Errors` warning dialog.
+
+A `try/catch` az event handlerekben mar csak nem-varhato kivetelekre (pl.
+service maga is dobott valamit) szol, nem a normal hiba-utra.
+
+## 9. Konfiguracio – local vs. remote
+
+Csak a **host** valtozik:
+
+| Kornyezet | NaturaCoApiUrl                       |
+|-----------|--------------------------------------|
+| Local DNN | `http://localhost`                   |
+| Remote    | `http://20.107.242.91` vagy hasonlo  |
+| Production| `https://naturaco.hu`                |
+
+A path-t soha ne kodold kemenyen, a service maga rakja ossze
+(`BasePath = "/DesktopModules/NaturaCo/API/RecipeSync"`).
+
+A Hotcakes katalogusbongeszes a `StoreUrl` + `ApiKey` parosa alapjan mukodik –
+ez egy fuggetlen csatorna, akkor is hasznalhato local testkor, ha a
+RecipeSync local DNN-en fut.
+
+## 10. Auth – jelenlegi helyzet
+
+A controller `AllowAnonymous`. A kliens ezert:
+- nem kuld DNN cookie-t,
+- nem kuld `RequestVerificationToken`-t,
+- nem hasznal API kulcsot a NaturaCo modulnak.
+
+Production iranyban erre kesobb auth-ot lehet rakni; az `RecipeApiService`
+egy helyrol kuld minden kerest, igy a token / API key hozzaadasa egy ponton
+beszurando.
+
+## 11. Tervezett bovitesek (ha szuksegesse valnak)
+
+- `CreateOrUpdateBundle = true` workflow felulet (ma a kliens fixen `false`-t
+  kuld – CLIENT_APP_CONTEXT.md "Bundle logika").
+- `PublishAfterSave = true` egylepeses publikalas a UI-bol.
+- Recept-lista / megnyitas (`Get` vegpont jelenleg nincs az API-ban; ha
+  bekerul, ide jon a "betoltes ID-rol" gomb).
+- Auth reteg a controller production-osodese utan.
+
+## 12. Mit ne tegyunk
+
+- Ne kodoljuk be fixen a host-ot (CLIENT_APP_CONTEXT.md – "Kliensoldali
+  implementacios tanacs").
+- Ne hivjunk Publish / Revoke-ot `CategoryBvin` nelkul.
+- Ne kezeljuk a `RecipeId`-t fo szerveroldali horgonykent – a szerver
+  szempontjabol a `CategoryBvin` az igazi azonosito.
+- Ne dolgozzuk at a designert kezzel ugy, hogy minden mezo elnevezeset
+  felforgatjuk – a `MainForm.cs` a Designer-beli kontroll-neveket varja.
+
+## 13. Forrasok
+
+- `/Users/dorituran/Downloads/CLIENT_APP_CONTEXT.md` – a vezerlo specifikacio.
+- Hotcakes Commerce DTO referencia: `..\lib\Hotcakes.CommerceDTO.dll`
+  (a Hotcakes telepitobol: `\DesktopModules\Hotcakes\Core\bin\`).
