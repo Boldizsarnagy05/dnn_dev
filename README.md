@@ -1,13 +1,22 @@
-﻿# dnn_dev
+# NaturaCo DNN fejlesztés
 
-Ez egy DNN fejlesztesre szant repo.
+Ez a repo a NaturaCo webshop egyetemi beadandójához készült.
 
-Ket fo funkciot fejlesztunk itt:
+A projekt egy DNN 9.13.10 alapú weboldalt bővít, amely Hotcakes Commerce-t használ. A cél egy egyszerű, de jól használható receptes funkció: a vásárló recepteket böngészhet, megnézheti a hozzávalókat, majd a webshopban létező termékeket kosárba teheti.
 
-1. Custom modul a DNN Webshophoz, amelyet a userek fognak hasznalni.
-2. Kliensalkalmazas, amelyet a weboldal uzemeltetoje fog hasznalni.
+## Fő részek
 
-## Mappak
+- `Recept_modul/`  
+  A DNN MVC receptmodul. Ez jeleníti meg a recepteket, a részletező oldalt, az adagolást és a kosár-előnézetet.
 
-- `Teszko_Dnn_HelloWorld_Items/`: DNN custom modul fejlesztes.
-- `scraping/`: Python alapu scraping scriptek.
+- `NaturaCo_Boundle_api/`  
+  API modul a receptek mentéséhez, listázásához, betöltéséhez, publikálásához és visszavonásához.
+
+## Fontos működés
+
+- A recept Hotcakes kategóriaként van tárolva.
+- A recept adatai a kategória leírásában, NaturaCo metadata formában vannak.
+- A recept kategóriák Hotcakes oldalon rejtettek, ezért nem jelennek meg az ÉTLAP oldalon.
+- A Recept modul a metadata `Status = Published` alapján jeleníti meg őket.
+- Üres `ProductBvin` esetén a hozzávaló nem webshop termék: látszik a receptben, de nem tehető kosárba.
+
