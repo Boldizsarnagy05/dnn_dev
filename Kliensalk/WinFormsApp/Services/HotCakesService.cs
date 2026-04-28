@@ -34,20 +34,17 @@ namespace NaturaCo.RecipeEditor.Services
         // Kategóriák
         // ------------------------------------------------------------------
 
-        public List<HccCategory> GetCategories(string excludeParentBvin = null)
+        public List<HccCategory> GetCategories(HashSet<string> excludeBvins = null)
         {
             var response = _api.CategoriesFindAll();
 
             if (response.Errors.Count > 0)
                 throw new Exception(string.Join(", ", response.Errors.Select(e => e.Description)));
 
-            // Csak latható (Hidden=false) kategoriak. Ha excludeParentBvin meg van adva,
-            // kizarjuk azokat a kategoriat amelyek annak alatta vannak (recept-kategoriak).
+            // Csak latható (Hidden=false) kategoriak, a recept-kategoriak kizarasaval.
             return response.Content
                 .Where(c => !c.Hidden)
-                .Where(c => string.IsNullOrEmpty(excludeParentBvin)
-                            || (!string.Equals(c.ParentId, excludeParentBvin, StringComparison.OrdinalIgnoreCase)
-                                && !string.Equals(c.Bvin,     excludeParentBvin, StringComparison.OrdinalIgnoreCase)))
+                .Where(c => excludeBvins == null || !excludeBvins.Contains(c.Bvin))
                 .Select(c => new HccCategory
                 {
                     Bvin = c.Bvin,

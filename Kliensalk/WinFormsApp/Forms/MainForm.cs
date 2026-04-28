@@ -108,16 +108,23 @@ namespace NaturaCo.RecipeEditor.Forms
 
         private async void MainForm_Load(object sender, EventArgs e)
         {
-            await LoadCategoriesAsync();
             NewRecipe();
-            await LoadRecipeListAsync();
+            var recipes = await FetchRecipeListAsync();
+            LoadCategoriesFiltered(recipes);
+            PopulateRecipeList(recipes);
         }
 
-        private Task LoadCategoriesAsync()
+        private void LoadCategoriesFiltered(List<RecipeListItem> knownRecipes)
         {
             try
             {
-                var cats = _hccService.GetCategories(_recipeRootCategoryBvin);
+                var recipeBvins = new HashSet<string>(
+                    (knownRecipes ?? new List<RecipeListItem>())
+                        .Where(r => !string.IsNullOrEmpty(r.CategoryBvin))
+                        .Select(r => r.CategoryBvin),
+                    StringComparer.OrdinalIgnoreCase);
+
+                var cats = _hccService.GetCategories(recipeBvins);
                 cmbCategory.DataSource    = cats;
                 cmbCategory.DisplayMember = "Name";
                 cmbCategory.ValueMember   = "Bvin";
@@ -126,53 +133,46 @@ namespace NaturaCo.RecipeEditor.Forms
             {
                 MessageBox.Show("Kategoriak betoltese sikertelen: " + ex.Message);
             }
-            return Task.CompletedTask;
         }
 
         // ------------------------------------------------------------------
         // Recept lista (jobb oldali panel)
         // ------------------------------------------------------------------
 
-        private async Task LoadRecipeListAsync()
+        private async Task<List<RecipeListItem>> FetchRecipeListAsync()
+        {
+            try
+            {
+                var items = await _recipeService.GetRecipesAsync();
+                if (items != null && items.Count > 0) return items;
+
+                // Fallback: /List vegpont ures -> HotCakes hidden kategoriak
+                return await Task.Run(() => _hccService.GetAllRecipesFromHcc());
+            }
+            catch { return new List<RecipeListItem>(); }
+        }
+
+        private void PopulateRecipeList(List<RecipeListItem> items)
         {
             _suppressRecipeSelect = true;
             try
             {
-                // Eloszor a szerver /List vegpontot probaljuk
-                var items = await _recipeService.GetRecipesAsync();
-
-                if (items != null && items.Count > 0)
-                {
-                    lvRecipes.Items.Clear();
-                    foreach (var r in items)
-                    {
-                        var lvi = new ListViewItem(r.RecipeName ?? "(névtelen)") { Tag = r };
-                        lvi.SubItems.Add(StatusToHu(r.Status));
-                        lvRecipes.Items.Add(lvi);
-                    }
-                    return;
-                }
-
-                // Fallback: /List vegpont nem letezik meg -> HotCakes hidden kategoriak
-                var hccItems = _hccService.GetAllRecipesFromHcc();
                 lvRecipes.Items.Clear();
-                foreach (var r in hccItems)
+                foreach (var r in items ?? new List<RecipeListItem>())
                 {
-                    // Ha a helyi listaban mar szerepel (SyncRecipeInList tette oda),
-                    // attol az allapotot es RecipeId-t vesszuk at
                     var existing = FindInList(r.CategoryBvin);
                     if (existing != null) r.Status = existing.Status;
-
                     var lvi = new ListViewItem(r.RecipeName ?? "(névtelen)") { Tag = r };
                     lvi.SubItems.Add(StatusToHu(r.Status));
                     lvRecipes.Items.Add(lvi);
                 }
             }
-            catch { /* lista marad uresen */ }
-            finally
-            {
-                _suppressRecipeSelect = false;
-            }
+            finally { _suppressRecipeSelect = false; }
+        }
+
+        private async Task LoadRecipeListAsync()
+        {
+            PopulateRecipeList(await FetchRecipeListAsync());
         }
 
         private RecipeListItem FindInList(string categoryBvin)
