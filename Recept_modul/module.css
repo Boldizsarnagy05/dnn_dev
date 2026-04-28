@@ -11,6 +11,10 @@
     --nc-yellow: #ffdf45;
     --nc-radius: 14px;
     --nc-shadow: 0 10px 24px rgba(0, 0, 0, 0.05);
+    --nc-page-offset: 150px;
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - var(--nc-page-offset));
     color: var(--nc-text);
     font-family: "Segoe UI", Arial, sans-serif;
 }
@@ -20,6 +24,7 @@
 }
 
 .nc-recipe-list {
+    flex: 1 0 auto;
     width: min(1100px, calc(100% - 32px));
     margin: 0 auto;
     padding: 48px 0 80px;
