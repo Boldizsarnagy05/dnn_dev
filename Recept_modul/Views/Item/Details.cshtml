@@ -62,12 +62,20 @@
                     @for (var index = 0; index < Model.Ingredients.Count; index++)
                     {
                         var item = Model.Ingredients[index];
+                        var canAddToCart = !string.IsNullOrWhiteSpace(item.ProductBvin);
                         <tr data-ingredient-row data-index="@index">
                             <td><span class="nc-dot"></span>@item.ProductName</td>
                             <td><span data-quantity>@item.Quantity.ToString("0.##", CultureInfo.InvariantCulture)</span> @item.Unit</td>
                             <td><strong><span data-calories>@item.Calories</span> kcal</strong></td>
                             <td>
-                                <button class="nc-cart-icon" type="button" data-add-preview="@index" aria-label="@item.ProductName kosár előnézetbe">Kosárba</button>
+                                @if (canAddToCart)
+                                {
+                                    <button class="nc-cart-icon" type="button" data-add-preview="@index" aria-label="@item.ProductName kosár előnézetbe">Kosárba</button>
+                                }
+                                else
+                                {
+                                    <span class="nc-no-cart">Nem webshop termék</span>
+                                }
                             </td>
                         </tr>
                     }
@@ -152,6 +160,10 @@
             return Math.max(1, Math.ceil(needed));
         }
 
+        function isCartable(item) {
+            return item && item.productBvin && String(item.productBvin).replace(/\s/g, "").length > 0;
+        }
+
         function updateServing() {
             root.querySelector("[data-serving-count]").textContent = servings;
             root.querySelector("[data-serving-label]").textContent = servings;
@@ -169,7 +181,7 @@
 
         function addPreview(index) {
             var item = ingredients[index];
-            if (!item || !item.productBvin) return;
+            if (!isCartable(item)) return;
             if (!preview[item.productBvin]) {
                 preview[item.productBvin] = { item: item, qty: cartQuantity(item) };
             } else {
@@ -180,7 +192,7 @@
 
         function addAllPreview() {
             ingredients.forEach(function (item) {
-                if (!item || !item.productBvin) return;
+                if (!isCartable(item)) return;
                 preview[item.productBvin] = { item: item, qty: cartQuantity(item) };
             });
             renderPreview();

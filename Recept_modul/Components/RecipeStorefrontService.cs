@@ -210,8 +210,7 @@ namespace Teszko.ReceptModulRecept_modul.Components
                 TotalCalories = card.TotalCalories,
                 EstimatedCost = meta.EstimatedCost,
                 Steps = SplitSteps(meta.Steps),
-                Ingredients = meta.Ingredients
-                    .OrderBy(i => i.SortOrder)
+                Ingredients = OrderIngredients(meta.Ingredients
                     .Select(i => new RecipeIngredientViewModel
                     {
                         ProductBvin = i.ProductBvin,
@@ -223,7 +222,7 @@ namespace Teszko.ReceptModulRecept_modul.Components
                         PackageQuantity = i.PackageQuantity,
                         PackageUnit = i.PackageUnit,
                         SortOrder = i.SortOrder
-                    })
+                    }))
                     .ToList()
             };
         }
@@ -267,11 +266,19 @@ namespace Teszko.ReceptModulRecept_modul.Components
                 }
             }
 
-            detail.Ingredients = detail.Ingredients.OrderBy(i => i.SortOrder).ToList();
+            detail.Ingredients = OrderIngredients(detail.Ingredients).ToList();
             if (detail.EstimatedCost <= 0)
             {
                 detail.EstimatedCost = detail.Ingredients.Sum(i => i.Price);
             }
+        }
+
+        private static IEnumerable<RecipeIngredientViewModel> OrderIngredients(IEnumerable<RecipeIngredientViewModel> ingredients)
+        {
+            return (ingredients ?? Enumerable.Empty<RecipeIngredientViewModel>())
+                .OrderBy(i => string.IsNullOrWhiteSpace(i.ProductBvin) ? 1 : 0)
+                .ThenBy(i => i.SortOrder)
+                .ThenBy(i => i.ProductName);
         }
 
         private static bool TryAddLineToCart(object hccApp, CartLineRequest line)

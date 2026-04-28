@@ -374,6 +374,15 @@
     font-size: 14px;
 }
 
+.nc-no-cart {
+    display: inline-flex;
+    align-items: center;
+    min-height: 38px;
+    color: var(--nc-muted);
+    font-size: 12px;
+    font-weight: 800;
+}
+
 .nc-dot {
     display: inline-block;
     width: 9px;
@@ -438,6 +447,7 @@
 }
 
 .nc-total-card strong {
+    color: #fff;
     font-size: 34px;
     line-height: 1;
 }
@@ -509,6 +519,7 @@
 .nc-line-name {
     grid-area: name;
     min-width: 0;
+    color: #fff;
     font-size: 14px;
 }
 
@@ -536,7 +547,7 @@
 }
 
 .nc-line-summary span {
-    color: #caa0a0;
+    color: #fff;
     font-size: 12px;
 }
 
@@ -558,6 +569,10 @@
 .nc-line-stepper {
     grid-area: stepper;
     align-self: end;
+}
+
+.nc-line-stepper strong {
+    color: #fff;
 }
 
 .nc-cart-total {
