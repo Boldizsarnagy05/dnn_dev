@@ -31,10 +31,12 @@ namespace NaturaCo.RecipeEditor
                 return;
             }
 
+            var recipeRootCategoryBvin = ConfigurationManager.AppSettings["RecipeRootCategoryBvin"] ?? string.Empty;
+
             var hccService    = new HotCakesService(storeUrl, apiKey);
             var recipeService = new RecipeApiService(naturaCoApiUrl);
 
-            Application.Run(new MainForm(hccService, recipeService));
+            Application.Run(new MainForm(hccService, recipeService, recipeRootCategoryBvin));
         }
     }
 }

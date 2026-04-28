@@ -12,6 +12,7 @@ namespace NaturaCo.RecipeEditor.Forms
     {
         private readonly HotCakesService  _hccService;
         private readonly RecipeApiService _recipeService;
+        private readonly string           _recipeRootCategoryBvin;
 
         // Editor-allapot. A szerver-szintu "igazsagot" a CategoryBvin / BundleBvin
         // hordozza - ezeket minden sikeres Save utan frissitjuk
@@ -33,11 +34,12 @@ namespace NaturaCo.RecipeEditor.Forms
             "a42772d0-d5eb-430d-b101-306a1fd0dc17"  // Rost es vitamin
         };
 
-        public MainForm(HotCakesService hccService, RecipeApiService recipeService)
+        public MainForm(HotCakesService hccService, RecipeApiService recipeService, string recipeRootCategoryBvin = "")
         {
             InitializeComponent();
-            _hccService    = hccService;
-            _recipeService = recipeService;
+            _hccService              = hccService;
+            _recipeService           = recipeService;
+            _recipeRootCategoryBvin  = recipeRootCategoryBvin ?? string.Empty;
 
             SetupIngredientGrid();
             SetupRecipeList();
@@ -622,7 +624,7 @@ namespace NaturaCo.RecipeEditor.Forms
             var request = new PublishRecipeRequest
             {
                 RecipeId     = _currentRecipe.RecipeID == 0 ? (int?)null : _currentRecipe.RecipeID,
-                CategoryBvin = _currentRecipe.CategoryBvin,
+                CategoryBvin = !string.IsNullOrEmpty(_currentRecipe.CategoryBvin) ? _currentRecipe.CategoryBvin : _recipeRootCategoryBvin,
                 BundleBvin   = _currentRecipe.BundleBvin ?? string.Empty
             };
 
@@ -660,7 +662,7 @@ namespace NaturaCo.RecipeEditor.Forms
             var request = new RevokeRecipeRequest
             {
                 RecipeId     = _currentRecipe.RecipeID == 0 ? (int?)null : _currentRecipe.RecipeID,
-                CategoryBvin = _currentRecipe.CategoryBvin,
+                CategoryBvin = !string.IsNullOrEmpty(_currentRecipe.CategoryBvin) ? _currentRecipe.CategoryBvin : _recipeRootCategoryBvin,
                 BundleBvin   = _currentRecipe.BundleBvin ?? string.Empty
             };
 
@@ -684,8 +686,12 @@ namespace NaturaCo.RecipeEditor.Forms
         // Request felepitese / valasz feldolgozasa
         // ------------------------------------------------------------------
 
-        private static SaveRecipeRequest BuildSaveRequest(Recipe r, bool publishAfterSave)
+        private SaveRecipeRequest BuildSaveRequest(Recipe r, bool publishAfterSave)
         {
+            var categoryBvin = !string.IsNullOrEmpty(r.CategoryBvin)
+                ? r.CategoryBvin
+                : _recipeRootCategoryBvin;
+
             return new SaveRecipeRequest
             {
                 RecipeId             = r.RecipeID == 0 ? (int?)null : r.RecipeID,
@@ -703,7 +709,7 @@ namespace NaturaCo.RecipeEditor.Forms
                 AuthorName           = r.AuthorName ?? string.Empty,
                 PreviewImageUrl      = r.PreviewImageUrl ?? string.Empty,
                 Status               = string.IsNullOrWhiteSpace(r.Status) ? "Draft" : r.Status,
-                CategoryBvin         = r.CategoryBvin ?? string.Empty,
+                CategoryBvin         = categoryBvin,
                 BundleBvin           = r.BundleBvin ?? string.Empty,
                 CreateOrUpdateBundle = false,
                 PublishAfterSave     = publishAfterSave,
