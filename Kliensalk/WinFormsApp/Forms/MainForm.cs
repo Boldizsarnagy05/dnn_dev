@@ -809,6 +809,7 @@ namespace NaturaCo.RecipeEditor.Forms
             };
             RefreshIngredientGrid();
             SetStatus("Draft");
+            RecalculateTotals();
         }
 
         private void ReadFormToRecipe()
