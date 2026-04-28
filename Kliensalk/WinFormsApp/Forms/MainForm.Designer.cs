@@ -383,7 +383,7 @@ namespace NaturaCo.RecipeEditor.Forms
             // 
             this.lblTotalCalories.AutoSize = true;
             this.lblTotalCalories.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.lblTotalCalories.Location = new System.Drawing.Point(20, 812);
+            this.lblTotalCalories.Location = new System.Drawing.Point(20, 792);
             this.lblTotalCalories.Name = "lblTotalCalories";
             this.lblTotalCalories.Size = new System.Drawing.Size(238, 32);
             this.lblTotalCalories.TabIndex = 36;
@@ -392,7 +392,7 @@ namespace NaturaCo.RecipeEditor.Forms
             // lblCaloriesPerServing
             // 
             this.lblCaloriesPerServing.AutoSize = true;
-            this.lblCaloriesPerServing.Location = new System.Drawing.Point(280, 812);
+            this.lblCaloriesPerServing.Location = new System.Drawing.Point(280, 792);
             this.lblCaloriesPerServing.Name = "lblCaloriesPerServing";
             this.lblCaloriesPerServing.Size = new System.Drawing.Size(217, 32);
             this.lblCaloriesPerServing.TabIndex = 37;
@@ -488,7 +488,7 @@ namespace NaturaCo.RecipeEditor.Forms
             //
             this.AutoScaleDimensions = new System.Drawing.SizeF(13F, 32F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1315, 848);
+            this.ClientSize = new System.Drawing.Size(1315, 828);
             this.Controls.Add(this.lblRecipeNameCaption);
             this.Controls.Add(this.txtRecipeName);
             this.Controls.Add(this.lblStatusCaption);
