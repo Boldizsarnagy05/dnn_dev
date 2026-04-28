@@ -446,7 +446,7 @@ namespace NaturaCo.RecipeEditor.Forms
             this.grpRecipes.Controls.Add(this.btnNewRecipe);
             this.grpRecipes.Location = new System.Drawing.Point(1010, 10);
             this.grpRecipes.Name = "grpRecipes";
-            this.grpRecipes.Size = new System.Drawing.Size(290, 833);
+            this.grpRecipes.Size = new System.Drawing.Size(290, 786);
             this.grpRecipes.TabIndex = 50;
             this.grpRecipes.TabStop = false;
             this.grpRecipes.Text = "Meglévő receptek";
@@ -464,7 +464,7 @@ namespace NaturaCo.RecipeEditor.Forms
             this.lvRecipes.Location = new System.Drawing.Point(8, 22);
             this.lvRecipes.MultiSelect = false;
             this.lvRecipes.Name = "lvRecipes";
-            this.lvRecipes.Size = new System.Drawing.Size(272, 771);
+            this.lvRecipes.Size = new System.Drawing.Size(272, 730);
             this.lvRecipes.TabIndex = 51;
             this.lvRecipes.UseCompatibleStateImageBehavior = false;
             this.lvRecipes.View = System.Windows.Forms.View.Details;
@@ -476,7 +476,7 @@ namespace NaturaCo.RecipeEditor.Forms
                 System.Windows.Forms.AnchorStyles.Bottom |
                 System.Windows.Forms.AnchorStyles.Left |
                 System.Windows.Forms.AnchorStyles.Right));
-            this.btnNewRecipe.Location = new System.Drawing.Point(8, 799);
+            this.btnNewRecipe.Location = new System.Drawing.Point(8, 758);
             this.btnNewRecipe.Name = "btnNewRecipe";
             this.btnNewRecipe.Size = new System.Drawing.Size(272, 28);
             this.btnNewRecipe.TabIndex = 52;
