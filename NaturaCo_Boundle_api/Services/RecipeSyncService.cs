@@ -138,11 +138,6 @@ namespace NaturaCo.RecipeSyncApi.Services
 
             foreach (var ingredient in request.Ingredients.OrderBy(i => i.SortOrder))
             {
-                if (string.IsNullOrWhiteSpace(ingredient.ProductBvin))
-                {
-                    errors.Add("Minden hozzavalhoz tartoznia kell ProductBvin erteknek.");
-                }
-
                 if (ingredient.Quantity <= 0)
                 {
                     errors.Add($"A(z) {ingredient.ProductName ?? "ismeretlen"} mennyisege legyen nagyobb nullanal.");

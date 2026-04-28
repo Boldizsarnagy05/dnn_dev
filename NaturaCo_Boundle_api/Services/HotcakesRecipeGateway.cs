@@ -124,6 +124,11 @@ namespace NaturaCo.RecipeSyncApi.Services
             var associationType = GetRequiredType("Hotcakes.Commerce.Catalog.CategoryProductAssociation");
             foreach (var ingredient in ingredients.OrderBy(i => i.SortOrder))
             {
+                if (string.IsNullOrWhiteSpace(ingredient.ProductBvin))
+                {
+                    continue;
+                }
+
                 var association = Activator.CreateInstance(associationType);
                 SetPropertyIfPresent(association, "CategoryId", categoryBvin);
                 SetPropertyIfPresent(association, "ProductId", ingredient.ProductBvin);
@@ -352,7 +357,7 @@ namespace NaturaCo.RecipeSyncApi.Services
 
         private static void ApplyBundleValues(object bundleProduct, SaveRecipeRequest request)
         {
-            var firstIngredient = request.Ingredients.FirstOrDefault();
+            var firstIngredient = request.Ingredients.FirstOrDefault(i => !string.IsNullOrWhiteSpace(i.ProductBvin));
             var skuBase = string.IsNullOrWhiteSpace(firstIngredient?.ProductBvin)
                 ? BuildSlug(request.RecipeName).ToUpperInvariant()
                 : firstIngredient.ProductBvin.ToUpperInvariant();
@@ -381,6 +386,11 @@ namespace NaturaCo.RecipeSyncApi.Services
             var bundledProductType = GetRequiredType("Hotcakes.Commerce.Catalog.BundledProduct");
             foreach (var ingredient in ingredients.OrderBy(i => i.SortOrder))
             {
+                if (string.IsNullOrWhiteSpace(ingredient.ProductBvin))
+                {
+                    continue;
+                }
+
                 var bundledProduct = Activator.CreateInstance(bundledProductType);
                 SetPropertyIfPresent(bundledProduct, "ProductId", bundleBvin);
                 SetPropertyIfPresent(bundledProduct, "BundledProductId", ingredient.ProductBvin);
