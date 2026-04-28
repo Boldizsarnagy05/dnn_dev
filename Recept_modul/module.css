@@ -197,7 +197,7 @@
 .nc-detail {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 430px;
-    min-height: 820px;
+    min-height: max(820px, calc(100vh - var(--nc-page-offset)));
     margin: -1px 0 0;
     background: #fff;
 }
@@ -422,7 +422,7 @@
 .nc-cart-panel {
     display: flex;
     flex-direction: column;
-    min-height: 820px;
+    min-height: inherit;
     padding: 44px 28px 34px;
     background: var(--nc-dark);
     color: #fff;
