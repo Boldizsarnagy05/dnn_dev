@@ -65,8 +65,15 @@ namespace NaturaCo.RecipeEditor.Services
             {
                 var url  = _baseUrl + BasePath + "/List";
                 var json = await _http.GetStringAsync(url);
-                return JsonConvert.DeserializeObject<List<RecipeListItem>>(json)
-                       ?? new List<RecipeListItem>();
+
+                // A szerver {"Success":true,"Recipes":[...]} formatban kuldi
+                var wrapped = JsonConvert.DeserializeObject<RecipeListResponse>(json);
+                if (wrapped?.Recipes != null && wrapped.Recipes.Count > 0)
+                    return wrapped.Recipes;
+
+                // Fallback: ha plain tomb formatum (pl. tobbi implementacio)
+                var plain = JsonConvert.DeserializeObject<List<RecipeListItem>>(json);
+                return plain ?? new List<RecipeListItem>();
             }
             catch
             {
