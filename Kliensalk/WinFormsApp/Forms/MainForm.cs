@@ -222,13 +222,15 @@ namespace NaturaCo.RecipeEditor.Forms
 
         private void SelectMealType(string category)
         {
-            if (string.IsNullOrEmpty(category)) { cmbMealType.SelectedIndex = -1; return; }
-            for (int i = 0; i < cmbMealType.Items.Count; i++)
+            if (!string.IsNullOrEmpty(category))
             {
-                if (string.Equals(cmbMealType.Items[i].ToString(), category, StringComparison.OrdinalIgnoreCase))
-                { cmbMealType.SelectedIndex = i; return; }
+                for (int i = 0; i < cmbMealType.Items.Count; i++)
+                {
+                    if (string.Equals(cmbMealType.Items[i].ToString(), category, StringComparison.OrdinalIgnoreCase))
+                    { cmbMealType.SelectedIndex = i; return; }
+                }
             }
-            cmbMealType.SelectedIndex = -1;
+            cmbMealType.SelectedIndex = 0; // alapertek: Reggeli
         }
 
         private static string StatusToHu(string status) => status switch
