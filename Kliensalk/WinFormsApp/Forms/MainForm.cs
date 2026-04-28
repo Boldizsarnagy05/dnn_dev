@@ -259,10 +259,10 @@ namespace NaturaCo.RecipeEditor.Forms
                 // 2. Szerver /Load vegpont
                 if (item.RecipeId > 0)
                 {
-                    var result = await _recipeService.LoadRecipeAsync(item.RecipeId);
-                    if (result != null && result.Success)
+                    var response = await _recipeService.LoadRecipeAsync(item.RecipeId);
+                    if (response != null && response.Success && response.Recipe != null)
                     {
-                        PopulateFormFromResult(result);
+                        PopulateFormFromResult(response.Recipe);
                         await EnrichIngredientsFromHccAsync();
                         return;
                     }
@@ -366,16 +366,19 @@ namespace NaturaCo.RecipeEditor.Forms
                 RecipeName       = r.RecipeName       ?? string.Empty,
                 ShortDescription = r.ShortDescription ?? string.Empty,
                 Description      = r.Description      ?? string.Empty,
-                Category         = r.Category         ?? string.Empty,
+                Category         = r.MealType         ?? string.Empty,
                 Steps            = r.Steps            ?? string.Empty,
+                Tags             = r.Tags             ?? string.Empty,
+                AuthorName       = r.AuthorName       ?? string.Empty,
+                PreviewImageUrl  = r.PreviewImageUrl  ?? string.Empty,
                 Servings         = r.Servings > 0 ? r.Servings : 1,
-                PrepTimeMinutes  = r.PrepTime,
-                CookTimeMinutes  = r.CookTime,
+                PrepTimeMinutes  = r.PrepTimeMinutes,
+                CookTimeMinutes  = r.CookTimeMinutes,
                 TotalCalories    = r.TotalCalories,
                 EstimatedCost    = r.EstimatedCost,
                 Status           = r.Status           ?? "Draft",
-                CategoryBvin     = r.CategoryBvin      ?? string.Empty,
-                BundleBvin       = r.BundleBvin        ?? string.Empty,
+                CategoryBvin     = r.CategoryBvin     ?? string.Empty,
+                BundleBvin       = r.BundleBvin       ?? string.Empty,
                 Ingredients      = (r.Ingredients ?? new List<RecipeIngredientDto>())
                     .Select(i => new RecipeIngredient
                     {

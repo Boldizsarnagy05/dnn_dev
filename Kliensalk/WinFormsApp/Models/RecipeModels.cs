@@ -168,22 +168,30 @@ namespace NaturaCo.RecipeEditor.Models
         public List<RecipeListItem> Recipes { get; set; } = new List<RecipeListItem>();
     }
 
-    // GET /RecipeSync/Load?id={id} vegpont valasza - teljes recept szerkeszteshez
+    // GET /RecipeSync/Load?id={id} vegpont valasza - {"Success":true,"Recipe":{...}}
+    public class RecipeLoadResponse
+    {
+        public bool             Success { get; set; }
+        public string           Message { get; set; }
+        public RecipeLoadResult Recipe  { get; set; }
+    }
+
     public class RecipeLoadResult
     {
-        public bool                      Success          { get; set; }
-        public string                    Message          { get; set; }
         public int                       RecipeId         { get; set; }
         public string                    RecipeName       { get; set; }
         public string                    ShortDescription { get; set; }
         public string                    Description      { get; set; }
-        public string                    Category         { get; set; } // Reggeli / Ebéd / Vacsora / Nassolnivaló
+        public string                    MealType         { get; set; } // Reggeli / Ebéd / Vacsora / Nassolnivaló
         public string                    Steps            { get; set; }
+        public string                    Tags             { get; set; }
         public int                       Servings         { get; set; }
-        public int                       PrepTime         { get; set; }
-        public int                       CookTime         { get; set; }
+        public int                       PrepTimeMinutes  { get; set; }
+        public int                       CookTimeMinutes  { get; set; }
         public int?                      TotalCalories    { get; set; }
         public decimal?                  EstimatedCost    { get; set; }
+        public string                    AuthorName       { get; set; }
+        public string                    PreviewImageUrl  { get; set; }
         public string                    Status           { get; set; }
         public string                    CategoryBvin     { get; set; }
         public string                    BundleBvin       { get; set; }

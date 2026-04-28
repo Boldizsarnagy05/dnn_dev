@@ -81,18 +81,18 @@ namespace NaturaCo.RecipeEditor.Services
             }
         }
 
-        public async Task<RecipeLoadResult> LoadRecipeAsync(int recipeId)
+        public async Task<RecipeLoadResponse> LoadRecipeAsync(int recipeId)
         {
             try
             {
                 var url  = _baseUrl + BasePath + "/Load?id=" + recipeId;
                 var json = await _http.GetStringAsync(url);
-                return JsonConvert.DeserializeObject<RecipeLoadResult>(json)
-                       ?? new RecipeLoadResult { Success = false, Message = "Ures szerver-valasz." };
+                return JsonConvert.DeserializeObject<RecipeLoadResponse>(json)
+                       ?? new RecipeLoadResponse { Success = false, Message = "Ures szerver-valasz." };
             }
             catch (Exception ex)
             {
-                return new RecipeLoadResult { Success = false, Message = ex.Message };
+                return new RecipeLoadResponse { Success = false, Message = ex.Message };
             }
         }
 
