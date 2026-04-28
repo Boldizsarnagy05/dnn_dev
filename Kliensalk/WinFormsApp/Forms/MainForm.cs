@@ -739,8 +739,6 @@ namespace NaturaCo.RecipeEditor.Forms
             for (int i = 0; i < r.Ingredients.Count; i++)
             {
                 var ing = r.Ingredients[i];
-                if (string.IsNullOrWhiteSpace(ing.ProductBvin))
-                    return $"A {i + 1}. hozzavalonal hianyzik a termek (ProductBvin).";
                 if (ing.Amount <= 0)
                     return $"A {i + 1}. hozzavalo mennyisege legyen nagyobb mint 0.";
             }
