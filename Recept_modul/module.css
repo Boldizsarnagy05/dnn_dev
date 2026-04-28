@@ -12,6 +12,7 @@
     --nc-radius: 14px;
     --nc-shadow: 0 10px 24px rgba(0, 0, 0, 0.05);
     --nc-page-offset: 150px;
+    --nc-detail-offset: 101px;
     display: flex;
     flex-direction: column;
     min-height: calc(100vh - var(--nc-page-offset));
@@ -197,7 +198,7 @@
 .nc-detail {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 430px;
-    min-height: max(820px, calc(100vh - var(--nc-page-offset)));
+    min-height: max(820px, calc(100vh - var(--nc-detail-offset)));
     margin: -1px 0 0;
     background: #fff;
 }
