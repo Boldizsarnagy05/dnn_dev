@@ -524,6 +524,13 @@
     font-size: 14px;
 }
 
+.nc-line-pkg {
+    font-weight: 400;
+    font-size: 11px;
+    color: #b09090;
+    margin-left: 6px;
+}
+
 .nc-line-remove {
     grid-area: remove;
     width: 20px;

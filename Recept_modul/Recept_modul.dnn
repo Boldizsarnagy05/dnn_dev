@@ -1,6 +1,6 @@
-﻿<dotnetnuke type="Package" version="5.0">
+<dotnetnuke type="Package" version="5.0">
   <packages>
-    <package name="Recept_modul" type="Module" version="00.00.06">
+    <package name="Recept_modul" type="Module" version="00.00.09">
       <friendlyName>Recept_modul</friendlyName>
       <description>Recept_modul</description>
       <iconFile>~/Icons/Sigma/Software_32X32_Standard.png</iconFile>
@@ -16,29 +16,6 @@
         <dependency type="CoreVersion">09.08.00</dependency>
       </dependencies>
       <components>
-        <component type="Script">
-          <scripts>
-            <basePath>DesktopModules\MVC\Recept_modul</basePath>
-            <script type="Install">
-              <path>Providers\DataProviders\SqlDataProvider</path>
-              <name>00.00.01.SqlDataProvider</name>
-              <version>00.00.01</version>
-            </script>
-            <script type="UnInstall">
-              <path>Providers\DataProviders\SqlDataProvider</path>
-              <name>Uninstall.SqlDataProvider</name>
-              <version>00.00.01</version>
-            </script>
-          </scripts>
-        </component>
-        <component type="ResourceFile">
-          <resourceFiles>
-            <basePath>DesktopModules/MVC/Recept_modul</basePath>
-            <resourceFile>
-              <name>Resources.zip</name>
-            </resourceFile>
-          </resourceFiles>
-        </component>
         <component type="Module">
           <desktopModule>
             <moduleName>Recept_modul</moduleName>
