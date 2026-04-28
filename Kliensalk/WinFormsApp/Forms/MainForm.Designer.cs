@@ -157,7 +157,7 @@ namespace NaturaCo.RecipeEditor.Forms
             "Reggeli",
             "Ebéd",
             "Vacsora",
-            "Nassolnivaló"});
+            "Snack"});
             this.cmbMealType.Location = new System.Drawing.Point(487, 43);
             this.cmbMealType.Name = "cmbMealType";
             this.cmbMealType.Size = new System.Drawing.Size(505, 40);

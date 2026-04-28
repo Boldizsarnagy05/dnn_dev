@@ -87,7 +87,7 @@ namespace NaturaCo.RecipeEditor.Models
     {
         public int?    RecipeId             { get; set; }
         public string  RecipeName           { get; set; }
-        public string  MealType             { get; set; } // Reggeli | Ebéd | Vacsora | Nassolnivaló
+        public string  MealType             { get; set; } // Reggeli | Ebéd | Vacsora | Snack
         public string  ShortDescription     { get; set; }
         public string  Description          { get; set; }
         public string  Steps                { get; set; }
@@ -182,7 +182,7 @@ namespace NaturaCo.RecipeEditor.Models
         public string                    RecipeName       { get; set; }
         public string                    ShortDescription { get; set; }
         public string                    Description      { get; set; }
-        public string                    MealType         { get; set; } // Reggeli / Ebéd / Vacsora / Nassolnivaló
+        public string                    MealType         { get; set; } // Reggeli / Ebéd / Vacsora / Snack
         public string                    Steps            { get; set; }
         public string                    Tags             { get; set; }
         public int                       Servings         { get; set; }
