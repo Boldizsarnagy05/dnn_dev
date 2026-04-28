@@ -38,8 +38,14 @@ namespace NaturaCo.Modules.RecipeModule.Controllers
                 using (var conn = new SqlConnection(ConnStr))
                 using (var cmd = new SqlCommand(@"
                     SELECT RecipeID, RecipeName, Status,
-                           ISNULL(CategoryBvin, '') AS CategoryBvin,
-                           ISNULL(BundleBvin,   '') AS BundleBvin
+                           ISNULL(CategoryBvin, '')  AS CategoryBvin,
+                           ISNULL(BundleBvin,   '')  AS BundleBvin,
+                           ISNULL(Category,     '')  AS MealType,
+                           ISNULL(Servings,     1)   AS Servings,
+                           ISNULL(PrepTimeMinutes, 0) AS PrepTimeMinutes,
+                           ISNULL(CookTimeMinutes, 0) AS CookTimeMinutes,
+                           TotalCalories,
+                           ISNULL(ShortDescription, '') AS ShortDescription
                     FROM   dbo.RecipeRecipes
                     ORDER  BY RecipeName", conn))
                 {
@@ -50,11 +56,17 @@ namespace NaturaCo.Modules.RecipeModule.Controllers
                         {
                             list.Add(new
                             {
-                                RecipeId     = rdr.GetInt32(0),
-                                RecipeName   = rdr.IsDBNull(1) ? string.Empty : rdr.GetString(1),
-                                Status       = rdr.IsDBNull(2) ? "Draft"      : rdr.GetString(2),
-                                CategoryBvin = rdr.GetString(3),
-                                BundleBvin   = rdr.GetString(4),
+                                RecipeId         = rdr.GetInt32(0),
+                                RecipeName       = rdr.IsDBNull(1) ? string.Empty : rdr.GetString(1),
+                                Status           = rdr.IsDBNull(2) ? "Draft"      : rdr.GetString(2),
+                                CategoryBvin     = rdr.GetString(3),
+                                BundleBvin       = rdr.GetString(4),
+                                MealType         = rdr.GetString(5),
+                                Servings         = rdr.GetInt32(6),
+                                PrepTimeMinutes  = rdr.GetInt32(7),
+                                CookTimeMinutes  = rdr.GetInt32(8),
+                                TotalCalories    = rdr.IsDBNull(9) ? (int?)null : rdr.GetInt32(9),
+                                ShortDescription = rdr.GetString(10),
                             });
                         }
                     }
