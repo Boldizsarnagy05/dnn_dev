@@ -388,7 +388,8 @@ namespace NaturaCo.RecipeEditor.Forms
                         ProductBvin        = i.ProductBvin,
                         SortOrder          = i.SortOrder,
                         LinkedProductPrice = i.Price,
-                        CaloriesPer100g    = i.Calories,
+                        Calories           = i.Calories,
+                        CaloriesPer100g    = 0m,
                         PackageQuantity    = i.PackageQuantity,
                         PackageUnit        = i.PackageUnit
                     }).ToList()
@@ -541,12 +542,16 @@ namespace NaturaCo.RecipeEditor.Forms
         // Unit barmi mas (db, ek, csipet ...): 1 db ~ 100g kozelitessel kcal/100g * Amount.
         private static decimal CalculateLineCalories(RecipeIngredient i)
         {
-            if (i.CaloriesPer100g <= 0) return 0m;
+            if (i.CaloriesPer100g > 0)
+            {
+                if (string.Equals(i.Unit, "g", StringComparison.OrdinalIgnoreCase))
+                    return i.CaloriesPer100g / 100m * i.Amount;
 
-            if (string.Equals(i.Unit, "g", StringComparison.OrdinalIgnoreCase))
-                return i.CaloriesPer100g / 100m * i.Amount;
+                return i.CaloriesPer100g * i.Amount;
+            }
 
-            return i.CaloriesPer100g * i.Amount;
+            // Nincs per-100g adat (pl. egyedi hozzavalo vagy szerverrol betoltott): tarolt sor-kaloria
+            return i.Calories;
         }
 
         private void nudServings_ValueChanged(object sender, EventArgs e) => RecalculateTotals();

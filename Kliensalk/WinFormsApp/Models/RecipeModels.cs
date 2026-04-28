@@ -53,6 +53,9 @@ namespace NaturaCo.RecipeEditor.Models
         public decimal PricePerGram       { get; set; } // Ft / g - 0 ha nincs gramm-alapu adat
         public decimal CaloriesPer100g    { get; set; } // kcal / 100 g - 0 ha ismeretlen
 
+        // Sor-szintu szamitott kaloria (Amount + Unit + CaloriesPer100g alapjan, vagy szerverrol betoltve)
+        public decimal Calories           { get; set; }
+
         // Csomag metaadatok (API-ba kuldendo)
         public decimal PackageQuantity    { get; set; } // csomag merete (pl. 500)
         public string  PackageUnit        { get; set; } // csomag egysege (pl. "g", "db")
