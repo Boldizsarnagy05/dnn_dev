@@ -23,7 +23,7 @@ namespace Teszko.ReceptModulRecept_modul.Components
         public RecipeListViewModel GetRecipes(string mealType)
         {
             var recipes = TryLoadHotcakesRecipes();
-            if (recipes.Count == 0)
+            if (recipes == null)
             {
                 recipes = DemoRecipes();
             }
@@ -69,8 +69,8 @@ namespace Teszko.ReceptModulRecept_modul.Components
                 return new CartActionResult
                 {
                     Success = false,
-                    Message = "Nincs kosarba teheto termek.",
-                    Errors = { "Valassz legalabb egy hozzavalot." }
+                    Message = "Nincs kosárba tehető termék.",
+                    Errors = { "Válassz legalább egy hozzávalót." }
                 };
             }
 
@@ -79,7 +79,7 @@ namespace Teszko.ReceptModulRecept_modul.Components
                 return new CartActionResult
                 {
                     Success = true,
-                    Message = "A termekek bekerultek a kosar elonezetbe. Hotcakes context nelkul demo modban futott a muvelet."
+                    Message = "A termékek bekerültek a kosár előnézetbe. Hotcakes context nélkül demo módban futott a művelet."
                 };
             }
 
@@ -90,7 +90,7 @@ namespace Teszko.ReceptModulRecept_modul.Components
                 {
                     if (!TryAddLineToCart(hccApp, line))
                     {
-                        errors.Add("Nem sikerult kosarba tenni: " + line.ProductBvin);
+                        errors.Add("Nem sikerült kosárba tenni: " + line.ProductBvin);
                     }
                 }
                 catch (Exception ex)
@@ -102,7 +102,7 @@ namespace Teszko.ReceptModulRecept_modul.Components
             return new CartActionResult
             {
                 Success = errors.Count == 0,
-                Message = errors.Count == 0 ? "A kivalasztott termekek bekerultek a kosarba." : "Nem minden termeket sikerult kosarba tenni.",
+                Message = errors.Count == 0 ? "A kiválasztott termékek bekerültek a kosárba." : "Nem minden terméket sikerült kosárba tenni.",
                 Errors = errors
             };
         }
@@ -111,7 +111,7 @@ namespace Teszko.ReceptModulRecept_modul.Components
         {
             if (!TryGetHotcakesApp(out var hccApp))
             {
-                return new List<RecipeCardViewModel>();
+                return null;
             }
 
             var catalog = GetPropertyIfPresent(hccApp, "CatalogServices");
@@ -119,13 +119,19 @@ namespace Teszko.ReceptModulRecept_modul.Components
             var list = TryInvokeAny(categories, new[] { "FindAll" }) as IEnumerable;
             if (list == null)
             {
-                return new List<RecipeCardViewModel>();
+                return null;
             }
 
             var recipes = new List<RecipeCardViewModel>();
             foreach (var category in list)
             {
                 if (Convert.ToBoolean(GetPropertyIfPresent(category, "Hidden") ?? false))
+                {
+                    continue;
+                }
+
+                var description = Convert.ToString(GetPropertyIfPresent(category, "Description"));
+                if (!RecipeMetadataFormatter.ContainsMetadata(description))
                 {
                     continue;
                 }
@@ -151,6 +157,12 @@ namespace Teszko.ReceptModulRecept_modul.Components
             var categories = GetPropertyIfPresent(catalog, "Categories");
             var category = TryInvokeAny(categories, new[] { "Find", "FindWithCache" }, categoryBvin);
             if (category == null || Convert.ToBoolean(GetPropertyIfPresent(category, "Hidden") ?? false))
+            {
+                return null;
+            }
+
+            var description = Convert.ToString(GetPropertyIfPresent(category, "Description"));
+            if (!RecipeMetadataFormatter.ContainsMetadata(description))
             {
                 return null;
             }
@@ -288,8 +300,28 @@ namespace Teszko.ReceptModulRecept_modul.Components
             SetPropertyIfPresent(lineItem, "BasePricePerItem", Convert.ToDecimal(GetPropertyIfPresent(product, "SitePrice") ?? 0m));
             SetPropertyIfPresent(lineItem, "AdjustedPricePerItem", Convert.ToDecimal(GetPropertyIfPresent(product, "SitePrice") ?? 0m));
 
+            if (HasPublicMethod(hccApp, new[] { "AddToOrderWithCalculateAndSave", "AddToOrderAndSave" }, 2))
+            {
+                var result = TryInvokeAny(hccApp, new[] { "AddToOrderWithCalculateAndSave", "AddToOrderAndSave" }, cart, lineItem);
+                return result == null || !(result is bool) || (bool)result;
+            }
+
             var added = TryInvokeAny(orderServices, new[] { "AddItemToOrder" }, cart, lineItem);
-            return added == null || !(added is bool) || (bool)added;
+            if (added is bool && !(bool)added)
+            {
+                return false;
+            }
+
+            var saved = TryInvokeAny(hccApp, new[] { "CalculateOrderAndSave", "CalculateOrderAndSaveWithoutRepricing" }, cart);
+            if (saved != null)
+            {
+                return !(saved is bool) || (bool)saved;
+            }
+
+            var orders = GetPropertyIfPresent(orderServices, "Orders");
+            var updated = TryInvokeAny(orders, new[] { "Update" }, cart, true);
+            TryInvokeAny(orderServices, new[] { "InvalidateCachedCart" });
+            return updated == null || !(updated is bool) || (bool)updated;
         }
 
         private static List<string> SplitSteps(string steps)
@@ -581,6 +613,18 @@ namespace Teszko.ReceptModulRecept_modul.Components
             }
 
             return null;
+        }
+
+        private static bool HasPublicMethod(object target, IReadOnlyCollection<string> methodNames, int argumentCount)
+        {
+            if (target == null)
+            {
+                return false;
+            }
+
+            return target.GetType()
+                .GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                .Any(m => methodNames.Contains(m.Name, StringComparer.OrdinalIgnoreCase) && m.GetParameters().Length == argumentCount);
         }
 
         private static object ConvertValue(object value, Type destinationType)

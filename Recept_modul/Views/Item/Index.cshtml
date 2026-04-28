@@ -8,7 +8,7 @@
     {
         new { Key = "all", Label = "MINDEN" },
         new { Key = "reggeli", Label = "REGGELI" },
-        new { Key = "ebed", Label = "EBED" },
+        new { Key = "ebed", Label = "EBÉD" },
         new { Key = "vacsora", Label = "VACSORA" },
         new { Key = "snack", Label = "SNACKEK" }
     };
@@ -18,7 +18,7 @@
     <section class="nc-recipe-list">
         <h1>Receptek</h1>
 
-        <nav class="nc-filter-bar" aria-label="Recept kategoriak">
+        <nav class="nc-filter-bar" aria-label="Recept kategóriák">
             @foreach (var filter in filters)
             {
                 var isActive = string.Equals(Model.ActiveMealType, filter.Key, StringComparison.OrdinalIgnoreCase);
@@ -28,7 +28,7 @@
 
         @if (Model.Recipes.Count == 0)
         {
-            <div class="nc-empty">Most nincs publikalt recept ebben a kategoriaban.</div>
+            <div class="nc-empty">Most nincs publikált recept ebben a kategóriában.</div>
         }
         else
         {
@@ -42,10 +42,10 @@
                         </div>
                         <div class="nc-meta-row">
                             <span>@(recipe.PrepTimeMinutes + recipe.CookTimeMinutes) perc</span>
-                            <span>@recipe.Servings fore keszitve</span>
+                            <span>@recipe.Servings főre készítve</span>
                         </div>
                         <a class="nc-card-link" href="@Url.Action("Details", "Item", new { id = recipe.CategoryBvin })">
-                            Recept megtekintese <span aria-hidden="true">&gt;</span>
+                            Recept megtekintése <span aria-hidden="true">&gt;</span>
                         </a>
                     </article>
                 }

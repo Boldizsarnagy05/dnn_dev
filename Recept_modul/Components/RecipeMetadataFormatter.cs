@@ -9,6 +9,13 @@ namespace Teszko.ReceptModulRecept_modul.Components
         public const string StartMarker = "<!-- NATURACO_RECIPE_METADATA:";
         public const string EndMarker = ":NATURACO_RECIPE_METADATA -->";
 
+        public static bool ContainsMetadata(string description)
+        {
+            return !string.IsNullOrWhiteSpace(description)
+                && description.IndexOf(StartMarker, StringComparison.Ordinal) >= 0
+                && description.IndexOf(EndMarker, StringComparison.Ordinal) >= 0;
+        }
+
         public static RecipeMetadata Extract(string description)
         {
             if (string.IsNullOrWhiteSpace(description))

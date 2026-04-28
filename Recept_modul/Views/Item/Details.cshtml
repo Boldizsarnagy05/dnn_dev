@@ -30,21 +30,21 @@
 
         <div class="nc-detail-meta">
             <span>@(Model.PrepTimeMinutes + Model.CookTimeMinutes) perc</span>
-            <span>@Model.Servings fore keszitve</span>
+            <span>@Model.Servings főre készítve</span>
         </div>
 
-        <p class="nc-description">@Model.Description</p>
+        <div class="nc-description">@Html.Raw(Model.Description)</div>
 
         <section class="nc-serving-box">
             <div>
                 <span>RECEPTCSOMAG ADAG:</span>
-                <strong><span data-serving-label>@Model.Servings</span> fore</strong>
+                <strong><span data-serving-label>@Model.Servings</span> főre</strong>
             </div>
-            <button class="nc-add-all" type="button" data-add-all>+ Mindent a kosarba</button>
+            <button class="nc-add-all" type="button" data-add-all>+ Mindent a kosárba</button>
             <div class="nc-stepper">
-                <button type="button" data-serving-minus aria-label="Adag csokkentese">-</button>
+                <button type="button" data-serving-minus aria-label="Adag csökkentése">-</button>
                 <strong data-serving-count>@Model.Servings</strong>
-                <button type="button" data-serving-plus aria-label="Adag novelese">+</button>
+                <button type="button" data-serving-plus aria-label="Adag növelése">+</button>
             </div>
         </section>
 
@@ -52,10 +52,10 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Osszetevok</th>
-                        <th>Mennyiseg</th>
-                        <th>Kaloria</th>
-                        <th>Tedd a kosarba!</th>
+                        <th>Összetevők</th>
+                        <th>Mennyiség</th>
+                        <th>Kalória</th>
+                        <th>Tedd a kosárba!</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -67,7 +67,7 @@
                             <td><span data-quantity>@item.Quantity.ToString("0.##", CultureInfo.InvariantCulture)</span> @item.Unit</td>
                             <td><strong><span data-calories>@item.Calories</span> kcal</strong></td>
                             <td>
-                                <button class="nc-cart-icon" type="button" data-add-preview="@index" aria-label="@item.ProductName kosar elonezetbe">Kosarba</button>
+                                <button class="nc-cart-icon" type="button" data-add-preview="@index" aria-label="@item.ProductName kosár előnézetbe">Kosárba</button>
                             </td>
                         </tr>
                     }
@@ -76,13 +76,13 @@
         </section>
 
         <div class="nc-recipe-total">
-            Recept osszesen: <strong data-recipe-total>@Model.TotalCalories kcal</strong>
+            Recept összesen: <strong data-recipe-total>@Model.TotalCalories kcal</strong>
         </div>
 
         @if (Model.Steps.Count > 0)
         {
             <section class="nc-steps">
-                <h2>Elkeszites</h2>
+                <h2>Elkészítés</h2>
                 <ol>
                     @foreach (var step in Model.Steps)
                     {
@@ -94,27 +94,27 @@
     </main>
 
     <aside class="nc-cart-panel">
-        <h2>TAPERTEKE OSSZESEN</h2>
+        <h2>TÁPÉRTÉKE ÖSSZESEN</h2>
         <div class="nc-total-card">
-            <span>KALORIA</span>
+            <span>KALÓRIA</span>
             <strong data-panel-kcal>0</strong>
             <em>kcal</em>
-            <small data-total-help>Adj hozza termekeket a kosarhoz</small>
+            <small data-total-help>Adj hozzá termékeket a kosárhoz</small>
         </div>
 
-        <h2>KOSAR ELONEZET</h2>
+        <h2>KOSÁR ELŐNÉZET</h2>
         <div class="nc-cart-preview" data-cart-preview>
             <div class="nc-cart-empty">
                 <span class="nc-empty-icon">+</span>
-                A kosar meg ures.<br />Adj hozza osszetevoket!
+                A kosár még üres.<br />Adj hozzá összetevőket!
             </div>
         </div>
 
         <div class="nc-cart-total">
-            <span>Vegosszeg:</span>
+            <span>Végösszeg:</span>
             <strong><span data-cart-total>0</span> Ft</strong>
         </div>
-        <button class="nc-add-cart" type="button" data-submit-cart disabled>TERMEKEK KOSARHOZ ADASA</button>
+        <button class="nc-add-cart" type="button" data-submit-cart disabled>TERMÉKEK KOSÁRHOZ ADÁSA</button>
         <div class="nc-cart-message" data-cart-message aria-live="polite"></div>
     </aside>
 </div>
@@ -191,10 +191,10 @@
             var submit = root.querySelector("[data-submit-cart]");
             var keys = Object.keys(preview);
             if (keys.length === 0) {
-                box.innerHTML = '<div class="nc-cart-empty"><span class="nc-empty-icon">+</span>A kosar meg ures.<br />Adj hozza osszetevoket!</div>';
+                box.innerHTML = '<div class="nc-cart-empty"><span class="nc-empty-icon">+</span>A kosár még üres.<br />Adj hozzá összetevőket!</div>';
                 root.querySelector("[data-cart-total]").textContent = "0";
                 root.querySelector("[data-panel-kcal]").textContent = "0";
-                root.querySelector("[data-total-help]").textContent = "Adj hozza termekeket a kosarhoz";
+                root.querySelector("[data-total-help]").textContent = "Adj hozzá termékeket a kosárhoz";
                 submit.disabled = true;
                 return;
             }
@@ -207,7 +207,7 @@
                 total += price;
                 calories += Number(line.item.calories || 0) * line.qty;
                 return '<div class="nc-cart-line" data-preview-line="' + key + '">' +
-                    '<button type="button" class="nc-line-remove" data-line-remove="' + key + '" aria-label="Termek torlese">x</button>' +
+                    '<button type="button" class="nc-line-remove" data-line-remove="' + key + '" aria-label="Termék törlése">x</button>' +
                     '<strong class="nc-line-name">' + line.item.name + '</strong>' +
                     '<div class="nc-line-stepper"><button type="button" data-line-minus="' + key + '">-</button><strong>' + line.qty + '</strong><button type="button" data-line-plus="' + key + '">+</button></div>' +
                     '<div class="nc-line-summary"><span>' + Math.round(Number(line.item.calories || 0) * line.qty) + ' kcal</span><strong>' + money(price) + ' Ft</strong></div>' +
@@ -257,11 +257,11 @@
             });
 
             if (items.length === 0) {
-                message.textContent = "A kosar elonezet ures.";
+                message.textContent = "A kosár előnézet üres.";
                 return;
             }
 
-            message.textContent = "Kosar frissitese...";
+            message.textContent = "Kosár frissítése...";
             var xhr = new XMLHttpRequest();
             xhr.open("POST", postUrl, true);
             xhr.setRequestHeader("Content-Type", "application/json; charset=utf-8");
@@ -269,9 +269,9 @@
                 if (xhr.readyState !== 4) return;
                 try {
                     var result = JSON.parse(xhr.responseText);
-                    message.textContent = result.Message || result.message || "Kosar muvelet kesz.";
+                    message.textContent = result.Message || result.message || "Kosár művelet kész.";
                 } catch (e) {
-                    message.textContent = xhr.status >= 200 && xhr.status < 300 ? "Kosar muvelet kesz." : "A kosar frissitese nem sikerult.";
+                    message.textContent = xhr.status >= 200 && xhr.status < 300 ? "Kosár művelet kész." : "A kosár frissítése nem sikerült.";
                 }
             };
             xhr.send(JSON.stringify({ CategoryBvin: "@Model.CategoryBvin", Servings: servings, Items: items }));

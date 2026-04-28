@@ -45,6 +45,7 @@
     flex-wrap: wrap;
     gap: 12px;
     margin: 34px 0 40px;
+    width: 100%;
 }
 
 .nc-filter,
@@ -56,6 +57,7 @@
 .nc-filter {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     min-height: 38px;
     padding: 0 22px;
     border: 1px solid var(--nc-line);
@@ -65,12 +67,27 @@
     font-size: 13px;
     font-weight: 800;
     letter-spacing: 0.02em;
+    flex: 0 0 auto;
 }
 
-.nc-filter.is-active {
+.nc-recipes .nc-filter,
+.nc-recipes .nc-filter:link,
+.nc-recipes .nc-filter:visited,
+.nc-recipes .nc-filter:hover,
+.nc-recipes .nc-filter:focus {
+    color: #5d6067;
+    text-decoration: none;
+}
+
+.nc-recipes .nc-filter.is-active,
+.nc-recipes .nc-filter.is-active:link,
+.nc-recipes .nc-filter.is-active:visited,
+.nc-recipes .nc-filter.is-active:hover,
+.nc-recipes .nc-filter.is-active:focus {
     background: #2d2f33;
     border-color: #2d2f33;
     color: #fff;
+    text-decoration: none;
 }
 
 .nc-card-grid {
@@ -146,6 +163,20 @@
     color: var(--nc-text);
     font-size: 13px;
     font-weight: 800;
+}
+
+.nc-recipes .nc-card-link,
+.nc-recipes .nc-card-link:link,
+.nc-recipes .nc-card-link:visited,
+.nc-recipes .nc-card-link:hover,
+.nc-recipes .nc-card-link:focus,
+.nc-recipes .nc-back,
+.nc-recipes .nc-back:link,
+.nc-recipes .nc-back:visited,
+.nc-recipes .nc-back:hover,
+.nc-recipes .nc-back:focus {
+    color: var(--nc-text);
+    text-decoration: none;
 }
 
 .nc-empty {
