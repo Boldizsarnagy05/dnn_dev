@@ -364,7 +364,7 @@ namespace NaturaCo.RecipeEditor.Forms
             // 
             this.lblTotalCost.AutoSize = true;
             this.lblTotalCost.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.lblTotalCost.Location = new System.Drawing.Point(20, 771);
+            this.lblTotalCost.Location = new System.Drawing.Point(20, 768);
             this.lblTotalCost.Name = "lblTotalCost";
             this.lblTotalCost.Size = new System.Drawing.Size(242, 32);
             this.lblTotalCost.TabIndex = 30;
@@ -373,7 +373,7 @@ namespace NaturaCo.RecipeEditor.Forms
             // lblCostPerServing
             // 
             this.lblCostPerServing.AutoSize = true;
-            this.lblCostPerServing.Location = new System.Drawing.Point(310, 771);
+            this.lblCostPerServing.Location = new System.Drawing.Point(280, 768);
             this.lblCostPerServing.Name = "lblCostPerServing";
             this.lblCostPerServing.Size = new System.Drawing.Size(196, 32);
             this.lblCostPerServing.TabIndex = 31;
@@ -383,7 +383,7 @@ namespace NaturaCo.RecipeEditor.Forms
             // 
             this.lblTotalCalories.AutoSize = true;
             this.lblTotalCalories.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.lblTotalCalories.Location = new System.Drawing.Point(20, 812);
+            this.lblTotalCalories.Location = new System.Drawing.Point(520, 768);
             this.lblTotalCalories.Name = "lblTotalCalories";
             this.lblTotalCalories.Size = new System.Drawing.Size(238, 32);
             this.lblTotalCalories.TabIndex = 36;
@@ -392,7 +392,7 @@ namespace NaturaCo.RecipeEditor.Forms
             // lblCaloriesPerServing
             // 
             this.lblCaloriesPerServing.AutoSize = true;
-            this.lblCaloriesPerServing.Location = new System.Drawing.Point(310, 812);
+            this.lblCaloriesPerServing.Location = new System.Drawing.Point(760, 768);
             this.lblCaloriesPerServing.Name = "lblCaloriesPerServing";
             this.lblCaloriesPerServing.Size = new System.Drawing.Size(217, 32);
             this.lblCaloriesPerServing.TabIndex = 37;
@@ -400,7 +400,7 @@ namespace NaturaCo.RecipeEditor.Forms
             // 
             // btnSaveDraft
             // 
-            this.btnSaveDraft.Location = new System.Drawing.Point(557, 771);
+            this.btnSaveDraft.Location = new System.Drawing.Point(557, 808);
             this.btnSaveDraft.Name = "btnSaveDraft";
             this.btnSaveDraft.Size = new System.Drawing.Size(150, 35);
             this.btnSaveDraft.TabIndex = 32;
@@ -410,7 +410,7 @@ namespace NaturaCo.RecipeEditor.Forms
             // 
             // btnPublish
             // 
-            this.btnPublish.Location = new System.Drawing.Point(715, 771);
+            this.btnPublish.Location = new System.Drawing.Point(715, 808);
             this.btnPublish.Name = "btnPublish";
             this.btnPublish.Size = new System.Drawing.Size(120, 35);
             this.btnPublish.TabIndex = 33;
@@ -420,7 +420,7 @@ namespace NaturaCo.RecipeEditor.Forms
             // 
             // btnRevoke
             // 
-            this.btnRevoke.Location = new System.Drawing.Point(843, 771);
+            this.btnRevoke.Location = new System.Drawing.Point(843, 808);
             this.btnRevoke.Name = "btnRevoke";
             this.btnRevoke.Size = new System.Drawing.Size(130, 35);
             this.btnRevoke.TabIndex = 34;
