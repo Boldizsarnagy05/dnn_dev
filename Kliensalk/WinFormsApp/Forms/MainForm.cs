@@ -347,7 +347,7 @@ namespace NaturaCo.RecipeEditor.Forms
 
             txtRecipeName.Text  = _currentRecipe.RecipeName;
             txtDescription.Text = string.Empty;
-            cmbMealType.SelectedIndex = -1;
+            cmbMealType.SelectedIndex = 0;
             txtSteps.Text       = string.Empty;
             nudServings.Value   = 4;
             nudPrepTime.Value   = 0;
@@ -438,7 +438,7 @@ namespace NaturaCo.RecipeEditor.Forms
 
             txtRecipeName.Text  = string.Empty;
             txtDescription.Text = string.Empty;
-            cmbMealType.SelectedIndex = -1;
+            cmbMealType.SelectedIndex = 0;
             txtSteps.Text       = string.Empty;
             nudServings.Value   = 4;
             nudPrepTime.Value   = 0;
