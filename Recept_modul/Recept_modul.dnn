@@ -1,6 +1,6 @@
 ﻿<dotnetnuke type="Package" version="5.0">
   <packages>
-    <package name="Recept_modul" type="Module" version="00.00.03">
+    <package name="Recept_modul" type="Module" version="00.00.04">
       <friendlyName>Recept_modul</friendlyName>
       <description>Recept_modul</description>
       <iconFile>~/Icons/Sigma/Software_32X32_Standard.png</iconFile>

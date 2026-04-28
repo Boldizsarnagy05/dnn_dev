@@ -125,13 +125,8 @@ namespace Teszko.ReceptModulRecept_modul.Components
             var recipes = new List<RecipeCardViewModel>();
             foreach (var category in list)
             {
-                if (Convert.ToBoolean(GetPropertyIfPresent(category, "Hidden") ?? false))
-                {
-                    continue;
-                }
-
                 var description = Convert.ToString(GetPropertyIfPresent(category, "Description"));
-                if (!RecipeMetadataFormatter.ContainsMetadata(description))
+                if (!IsPublishedRecipe(description))
                 {
                     continue;
                 }
@@ -156,13 +151,13 @@ namespace Teszko.ReceptModulRecept_modul.Components
             var catalog = GetPropertyIfPresent(hccApp, "CatalogServices");
             var categories = GetPropertyIfPresent(catalog, "Categories");
             var category = TryInvokeAny(categories, new[] { "Find", "FindWithCache" }, categoryBvin);
-            if (category == null || Convert.ToBoolean(GetPropertyIfPresent(category, "Hidden") ?? false))
+            if (category == null)
             {
                 return null;
             }
 
             var description = Convert.ToString(GetPropertyIfPresent(category, "Description"));
-            if (!RecipeMetadataFormatter.ContainsMetadata(description))
+            if (!IsPublishedRecipe(description))
             {
                 return null;
             }
@@ -170,6 +165,17 @@ namespace Teszko.ReceptModulRecept_modul.Components
             var detail = MapDetail(category);
             FillHotcakesProducts(catalog, detail);
             return detail;
+        }
+
+        private static bool IsPublishedRecipe(string description)
+        {
+            if (!RecipeMetadataFormatter.ContainsMetadata(description))
+            {
+                return false;
+            }
+
+            var meta = RecipeMetadataFormatter.Extract(description);
+            return string.Equals(meta.Status, "Published", StringComparison.OrdinalIgnoreCase);
         }
 
         private static RecipeCardViewModel MapCard(object category)

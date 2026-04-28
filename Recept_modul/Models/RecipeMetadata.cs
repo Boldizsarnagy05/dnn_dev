@@ -15,6 +15,7 @@ namespace Teszko.ReceptModulRecept_modul.Models
         public int TotalCalories { get; set; }
         public decimal EstimatedCost { get; set; }
         public string PreviewImageUrl { get; set; }
+        public string Status { get; set; }
         public List<RecipeIngredientMetadata> Ingredients { get; set; } = new List<RecipeIngredientMetadata>();
     }
 
