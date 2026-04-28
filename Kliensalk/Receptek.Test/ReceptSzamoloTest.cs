@@ -23,7 +23,7 @@ namespace Receptek.Test
             var tenylegesErtek = receptSzamolo.KaloriaKiszamitasa(kaloria, adagok);
 
             // Assert
-            Assert.AreEqual(vartErtek, tenylegesErtek);
+            Assert.That(tenylegesErtek, Is.EqualTo(vartErtek));
         }
     }
 }
