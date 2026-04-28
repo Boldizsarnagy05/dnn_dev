@@ -4,6 +4,7 @@ namespace NaturaCo.RecipeSyncApi.Models
 {
     public sealed class RecipeMetadata
     {
+        public int? RecipeId { get; set; }
         public string MealType { get; set; }
         public string ShortDescription { get; set; }
         public string Description { get; set; }
@@ -15,6 +16,8 @@ namespace NaturaCo.RecipeSyncApi.Models
         public int TotalCalories { get; set; }
         public decimal EstimatedCost { get; set; }
         public string PreviewImageUrl { get; set; }
+        public string Status { get; set; }
+        public string BundleBvin { get; set; }
         public List<RecipeIngredientMetadata> Ingredients { get; set; } = new List<RecipeIngredientMetadata>();
     }
 

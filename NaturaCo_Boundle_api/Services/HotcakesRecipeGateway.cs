@@ -18,6 +18,61 @@ namespace NaturaCo.RecipeSyncApi.Services
     {
         private readonly FallbackStore _fallbackStore = new FallbackStore();
 
+        public IReadOnlyCollection<RecipeListItemDto> ListRecipes()
+        {
+            if (!TryGetHotcakesApp(out var hccApp))
+            {
+                return _fallbackStore.ListRecipes();
+            }
+
+            var catalogServices = GetRequiredProperty(hccApp, "CatalogServices");
+            var categories = GetRequiredProperty(catalogServices, "Categories");
+            var list = TryInvokeAny(categories, new[] { "FindAll" }) as IEnumerable;
+            if (list == null)
+            {
+                return Array.Empty<RecipeListItemDto>();
+            }
+
+            var recipes = new List<RecipeListItemDto>();
+            foreach (var category in list)
+            {
+                var item = MapListItem(category);
+                if (item != null)
+                {
+                    recipes.Add(item);
+                }
+            }
+
+            return recipes.OrderBy(r => r.RecipeName).ToList();
+        }
+
+        public SaveRecipeRequest LoadRecipe(int recipeId)
+        {
+            if (!TryGetHotcakesApp(out var hccApp))
+            {
+                return _fallbackStore.LoadRecipe(recipeId);
+            }
+
+            var catalogServices = GetRequiredProperty(hccApp, "CatalogServices");
+            var categories = GetRequiredProperty(catalogServices, "Categories");
+            var list = TryInvokeAny(categories, new[] { "FindAll" }) as IEnumerable;
+            if (list == null)
+            {
+                return null;
+            }
+
+            foreach (var category in list)
+            {
+                var request = MapLoadRequest(category);
+                if (request?.RecipeId == recipeId)
+                {
+                    return request;
+                }
+            }
+
+            return null;
+        }
+
         public CategorySyncReference UpsertRecipeCategory(SaveRecipeRequest request)
         {
             if (!TryGetHotcakesApp(out var hccApp))
@@ -120,6 +175,118 @@ namespace NaturaCo.RecipeSyncApi.Services
             {
                 BundleBvin = bundleBvin
             };
+        }
+
+        private static RecipeListItemDto MapListItem(object category)
+        {
+            var description = Convert.ToString(GetPropertyIfPresent(category, "Description"));
+            if (!RecipeMetadataFormatter.ContainsMetadata(description))
+            {
+                return null;
+            }
+
+            var meta = RecipeMetadataFormatter.Extract(description);
+            var hidden = Convert.ToBoolean(GetPropertyIfPresent(category, "Hidden") ?? false);
+            var categoryBvin = Convert.ToString(GetPropertyIfPresent(category, "Bvin"));
+            return new RecipeListItemDto
+            {
+                RecipeId = EffectiveRecipeId(meta.RecipeId, categoryBvin),
+                RecipeName = Convert.ToString(GetPropertyIfPresent(category, "Name")),
+                CategoryBvin = categoryBvin,
+                BundleBvin = meta.BundleBvin,
+                MealType = meta.MealType,
+                Status = ResolveStatus(meta.Status, hidden),
+                ShortDescription = meta.ShortDescription ?? Convert.ToString(GetPropertyIfPresent(category, "MetaDescription")),
+                Servings = meta.Servings,
+                PrepTimeMinutes = meta.PrepTimeMinutes,
+                CookTimeMinutes = meta.CookTimeMinutes,
+                TotalCalories = meta.TotalCalories
+            };
+        }
+
+        private static SaveRecipeRequest MapLoadRequest(object category)
+        {
+            var description = Convert.ToString(GetPropertyIfPresent(category, "Description"));
+            if (!RecipeMetadataFormatter.ContainsMetadata(description))
+            {
+                return null;
+            }
+
+            var meta = RecipeMetadataFormatter.Extract(description);
+            var hidden = Convert.ToBoolean(GetPropertyIfPresent(category, "Hidden") ?? false);
+            var status = ResolveStatus(meta.Status, hidden);
+            var categoryBvin = Convert.ToString(GetPropertyIfPresent(category, "Bvin"));
+            return new SaveRecipeRequest
+            {
+                RecipeId = EffectiveRecipeId(meta.RecipeId, categoryBvin),
+                RecipeName = Convert.ToString(GetPropertyIfPresent(category, "Name")),
+                ShortDescription = meta.ShortDescription ?? Convert.ToString(GetPropertyIfPresent(category, "MetaDescription")),
+                Description = !string.IsNullOrWhiteSpace(meta.Description) ? meta.Description : RecipeMetadataFormatter.Strip(description),
+                Steps = meta.Steps,
+                Tags = meta.Tags,
+                Servings = meta.Servings,
+                PrepTimeMinutes = meta.PrepTimeMinutes,
+                CookTimeMinutes = meta.CookTimeMinutes,
+                TotalCalories = meta.TotalCalories,
+                EstimatedCost = meta.EstimatedCost,
+                PreviewImageUrl = meta.PreviewImageUrl,
+                MealType = meta.MealType,
+                Status = status,
+                CategoryBvin = categoryBvin,
+                BundleBvin = meta.BundleBvin,
+                CreateOrUpdateBundle = !string.IsNullOrWhiteSpace(meta.BundleBvin),
+                PublishAfterSave = string.Equals(status, "Published", StringComparison.OrdinalIgnoreCase),
+                Ingredients = (meta.Ingredients ?? new List<RecipeIngredientMetadata>())
+                    .OrderBy(i => i.SortOrder)
+                    .Select(i => new RecipeIngredientDto
+                    {
+                        ProductBvin = i.ProductBvin,
+                        ProductName = i.ProductName,
+                        Quantity = i.Quantity,
+                        Unit = i.Unit,
+                        Calories = i.Calories,
+                        Price = i.Price,
+                        PackageQuantity = i.PackageQuantity,
+                        PackageUnit = i.PackageUnit,
+                        SortOrder = i.SortOrder
+                    })
+                    .ToList()
+            };
+        }
+
+        private static int EffectiveRecipeId(int? recipeId, string categoryBvin)
+        {
+            if (recipeId.HasValue && recipeId.Value > 0)
+            {
+                return recipeId.Value;
+            }
+
+            unchecked
+            {
+                var hash = (int)2166136261;
+                foreach (var character in categoryBvin ?? string.Empty)
+                {
+                    hash ^= character;
+                    hash *= 16777619;
+                }
+
+                return hash == int.MinValue ? int.MaxValue : Math.Abs(hash);
+            }
+        }
+
+        private static string ResolveStatus(string metadataStatus, bool hidden)
+        {
+            if (!hidden)
+            {
+                return "Published";
+            }
+
+            if (string.Equals(metadataStatus, "Published", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Revoked";
+            }
+
+            return string.IsNullOrWhiteSpace(metadataStatus) ? "Draft" : metadataStatus;
         }
 
         public void Publish(string categoryBvin, string bundleBvin)
@@ -816,6 +983,82 @@ namespace NaturaCo.RecipeSyncApi.Services
                 _filePath = Path.Combine(appData, "NaturaCo.RecipeSync.fallback.json");
             }
 
+            public IReadOnlyCollection<RecipeListItemDto> ListRecipes()
+            {
+                lock (_syncRoot)
+                {
+                    var state = Load();
+                    return state.Categories
+                        .Select(c => new RecipeListItemDto
+                        {
+                            RecipeId = EffectiveRecipeId(c.RecipeId, c.CategoryBvin),
+                            RecipeName = c.RecipeName,
+                            CategoryBvin = c.CategoryBvin,
+                            BundleBvin = state.Bundles.FirstOrDefault(b => b.CategoryBvin == c.CategoryBvin)?.BundleBvin,
+                            MealType = c.MealType,
+                            Status = c.Status,
+                            ShortDescription = c.ShortDescription,
+                            Servings = c.Servings,
+                            PrepTimeMinutes = c.PrepTimeMinutes,
+                            CookTimeMinutes = c.CookTimeMinutes,
+                            TotalCalories = c.TotalCalories
+                        })
+                        .OrderBy(r => r.RecipeName)
+                        .ToList();
+                }
+            }
+
+            public SaveRecipeRequest LoadRecipe(int recipeId)
+            {
+                lock (_syncRoot)
+                {
+                    var state = Load();
+                    var category = state.Categories.FirstOrDefault(c => EffectiveRecipeId(c.RecipeId, c.CategoryBvin) == recipeId);
+                    if (category == null)
+                    {
+                        return null;
+                    }
+
+                    var bundle = state.Bundles.FirstOrDefault(b => b.CategoryBvin == category.CategoryBvin);
+                    return new SaveRecipeRequest
+                    {
+                        RecipeId = EffectiveRecipeId(category.RecipeId, category.CategoryBvin),
+                        RecipeName = category.RecipeName,
+                        ShortDescription = category.ShortDescription,
+                        Description = category.Description,
+                        Steps = category.Steps,
+                        Tags = category.Tags,
+                        Servings = category.Servings,
+                        PrepTimeMinutes = category.PrepTimeMinutes,
+                        CookTimeMinutes = category.CookTimeMinutes,
+                        TotalCalories = category.TotalCalories,
+                        EstimatedCost = category.EstimatedCost,
+                        PreviewImageUrl = category.PreviewImageUrl,
+                        MealType = category.MealType,
+                        Status = category.Status,
+                        CategoryBvin = category.CategoryBvin,
+                        BundleBvin = bundle?.BundleBvin,
+                        CreateOrUpdateBundle = bundle != null,
+                        PublishAfterSave = string.Equals(category.Status, "Published", StringComparison.OrdinalIgnoreCase),
+                        Ingredients = category.Products
+                            .OrderBy(i => i.SortOrder)
+                            .Select(i => new RecipeIngredientDto
+                            {
+                                ProductBvin = i.ProductBvin,
+                                ProductName = i.ProductName,
+                                Quantity = i.Quantity,
+                                Unit = i.Unit,
+                                Calories = i.Calories,
+                                Price = i.Price,
+                                PackageQuantity = i.PackageQuantity,
+                                PackageUnit = i.PackageUnit,
+                                SortOrder = i.SortOrder
+                            })
+                            .ToList()
+                    };
+                }
+            }
+
             public CategorySyncReference UpsertRecipeCategory(SaveRecipeRequest request)
             {
                 lock (_syncRoot)
@@ -836,6 +1079,18 @@ namespace NaturaCo.RecipeSyncApi.Services
                     }
 
                     category.RecipeName = request.RecipeName;
+                    category.RecipeId = request.RecipeId;
+                    category.ShortDescription = request.ShortDescription;
+                    category.Description = request.Description;
+                    category.Steps = request.Steps;
+                    category.Tags = request.Tags;
+                    category.Servings = request.Servings;
+                    category.PrepTimeMinutes = request.PrepTimeMinutes;
+                    category.CookTimeMinutes = request.CookTimeMinutes;
+                    category.TotalCalories = request.TotalCalories ?? 0;
+                    category.EstimatedCost = request.EstimatedCost ?? 0m;
+                    category.PreviewImageUrl = request.PreviewImageUrl;
+                    category.MealType = request.MealType;
                     category.Status = request.PublishAfterSave ? "Published" : request.Status ?? "Draft";
                     Save(state);
 
@@ -862,8 +1117,14 @@ namespace NaturaCo.RecipeSyncApi.Services
                         .Select(i => new FallbackProductLink
                         {
                             ProductBvin = i.ProductBvin,
+                            ProductName = i.ProductName,
                             Quantity = i.Quantity,
-                            Unit = i.Unit
+                            Unit = i.Unit,
+                            Calories = i.Calories ?? 0,
+                            Price = i.Price ?? 0m,
+                            PackageQuantity = i.PackageQuantity ?? 0m,
+                            PackageUnit = i.PackageUnit,
+                            SortOrder = i.SortOrder
                         })
                         .ToList();
 
@@ -897,8 +1158,14 @@ namespace NaturaCo.RecipeSyncApi.Services
                         .Select(i => new FallbackProductLink
                         {
                             ProductBvin = i.ProductBvin,
+                            ProductName = i.ProductName,
                             Quantity = i.Quantity,
-                            Unit = i.Unit
+                            Unit = i.Unit,
+                            Calories = i.Calories ?? 0,
+                            Price = i.Price ?? 0m,
+                            PackageQuantity = i.PackageQuantity ?? 0m,
+                            PackageUnit = i.PackageUnit,
+                            SortOrder = i.SortOrder
                         })
                         .ToList();
 
@@ -996,10 +1263,46 @@ namespace NaturaCo.RecipeSyncApi.Services
             public string CategoryBvin { get; set; }
 
             [DataMember]
+            public int? RecipeId { get; set; }
+
+            [DataMember]
             public string Slug { get; set; }
 
             [DataMember]
             public string RecipeName { get; set; }
+
+            [DataMember]
+            public string ShortDescription { get; set; }
+
+            [DataMember]
+            public string Description { get; set; }
+
+            [DataMember]
+            public string Steps { get; set; }
+
+            [DataMember]
+            public string Tags { get; set; }
+
+            [DataMember]
+            public int Servings { get; set; }
+
+            [DataMember]
+            public int PrepTimeMinutes { get; set; }
+
+            [DataMember]
+            public int CookTimeMinutes { get; set; }
+
+            [DataMember]
+            public int TotalCalories { get; set; }
+
+            [DataMember]
+            public decimal EstimatedCost { get; set; }
+
+            [DataMember]
+            public string PreviewImageUrl { get; set; }
+
+            [DataMember]
+            public string MealType { get; set; }
 
             [DataMember]
             public string Status { get; set; }
@@ -1034,10 +1337,28 @@ namespace NaturaCo.RecipeSyncApi.Services
             public string ProductBvin { get; set; }
 
             [DataMember]
+            public string ProductName { get; set; }
+
+            [DataMember]
             public decimal Quantity { get; set; }
 
             [DataMember]
             public string Unit { get; set; }
+
+            [DataMember]
+            public int Calories { get; set; }
+
+            [DataMember]
+            public decimal Price { get; set; }
+
+            [DataMember]
+            public decimal PackageQuantity { get; set; }
+
+            [DataMember]
+            public string PackageUnit { get; set; }
+
+            [DataMember]
+            public int SortOrder { get; set; }
         }
     }
 }

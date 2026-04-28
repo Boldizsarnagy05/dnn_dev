@@ -5,6 +5,8 @@ namespace NaturaCo.RecipeSyncApi.Services
 {
     public interface IHotcakesRecipeGateway
     {
+        IReadOnlyCollection<RecipeListItemDto> ListRecipes();
+        SaveRecipeRequest LoadRecipe(int recipeId);
         CategorySyncReference UpsertRecipeCategory(SaveRecipeRequest request);
         void ReplaceCategoryProducts(string categoryBvin, IReadOnlyCollection<RecipeIngredientDto> ingredients);
         BundleSyncReference UpsertBundle(SaveRecipeRequest request, string categoryBvin);

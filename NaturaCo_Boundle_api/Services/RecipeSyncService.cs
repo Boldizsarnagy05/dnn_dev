@@ -19,6 +19,20 @@ namespace NaturaCo.RecipeSyncApi.Services
             _gateway = gateway ?? throw new ArgumentNullException(nameof(gateway));
         }
 
+        public object List()
+        {
+            return new
+            {
+                Success = true,
+                Recipes = _gateway.ListRecipes()
+            };
+        }
+
+        public SaveRecipeRequest Load(int recipeId)
+        {
+            return _gateway.LoadRecipe(recipeId);
+        }
+
         public RecipeSyncResult Save(SaveRecipeRequest request)
         {
             var errors = ValidateSave(request);

@@ -15,6 +15,7 @@ namespace NaturaCo.RecipeSyncApi.Services
             var cleanDescription = Strip(visibleDescription);
             var metadata = new RecipeMetadata
             {
+                RecipeId = request.RecipeId,
                 MealType = request.MealType,
                 ShortDescription = request.ShortDescription,
                 Description = request.Description,
@@ -26,6 +27,8 @@ namespace NaturaCo.RecipeSyncApi.Services
                 TotalCalories = request.TotalCalories ?? 0,
                 EstimatedCost = request.EstimatedCost ?? 0m,
                 PreviewImageUrl = request.PreviewImageUrl,
+                Status = request.PublishAfterSave ? "Published" : request.Status ?? "Draft",
+                BundleBvin = request.BundleBvin,
                 Ingredients = (request.Ingredients ?? Enumerable.Empty<RecipeIngredientDto>())
                     .OrderBy(i => i.SortOrder)
                     .Select(i => new RecipeIngredientMetadata
@@ -47,7 +50,45 @@ namespace NaturaCo.RecipeSyncApi.Services
             return cleanDescription + Environment.NewLine + StartMarker + json + EndMarker;
         }
 
-        private static string Strip(string description)
+        public static bool ContainsMetadata(string description)
+        {
+            return !string.IsNullOrWhiteSpace(description)
+                && description.IndexOf(StartMarker, StringComparison.Ordinal) >= 0
+                && description.IndexOf(EndMarker, StringComparison.Ordinal) >= 0;
+        }
+
+        public static RecipeMetadata Extract(string description)
+        {
+            if (string.IsNullOrWhiteSpace(description))
+            {
+                return new RecipeMetadata();
+            }
+
+            var start = description.IndexOf(StartMarker, StringComparison.Ordinal);
+            if (start < 0)
+            {
+                return new RecipeMetadata { Description = description };
+            }
+
+            start += StartMarker.Length;
+            var end = description.IndexOf(EndMarker, start, StringComparison.Ordinal);
+            if (end < 0)
+            {
+                return new RecipeMetadata { Description = Strip(description) };
+            }
+
+            var json = description.Substring(start, end - start);
+            try
+            {
+                return JsonConvert.DeserializeObject<RecipeMetadata>(json) ?? new RecipeMetadata { Description = Strip(description) };
+            }
+            catch
+            {
+                return new RecipeMetadata { Description = Strip(description) };
+            }
+        }
+
+        public static string Strip(string description)
         {
             if (string.IsNullOrWhiteSpace(description))
             {
