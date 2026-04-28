@@ -698,9 +698,7 @@ namespace NaturaCo.RecipeEditor.Forms
 
         private SaveRecipeRequest BuildSaveRequest(Recipe r, bool publishAfterSave)
         {
-            var categoryBvin = !string.IsNullOrEmpty(r.CategoryBvin)
-                ? r.CategoryBvin
-                : _recipeRootCategoryBvin;
+            var categoryBvin = r.CategoryBvin ?? string.Empty;
 
             return new SaveRecipeRequest
             {
