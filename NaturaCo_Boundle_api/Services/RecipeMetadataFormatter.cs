@@ -50,6 +50,21 @@ namespace NaturaCo.RecipeSyncApi.Services
             return cleanDescription + Environment.NewLine + StartMarker + json + EndMarker;
         }
 
+        public static string ApplyStatus(string description, string status)
+        {
+            var cleanDescription = Strip(description);
+            var metadata = Extract(description);
+            metadata.Status = string.IsNullOrWhiteSpace(status) ? "Draft" : status;
+
+            if (string.IsNullOrWhiteSpace(metadata.Description))
+            {
+                metadata.Description = cleanDescription;
+            }
+
+            var json = JsonConvert.SerializeObject(metadata);
+            return cleanDescription + Environment.NewLine + StartMarker + json + EndMarker;
+        }
+
         public static bool ContainsMetadata(string description)
         {
             return !string.IsNullOrWhiteSpace(description)

@@ -281,16 +281,6 @@ namespace NaturaCo.RecipeSyncApi.Services
 
         private static string ResolveStatus(string metadataStatus, bool hidden)
         {
-            if (!hidden)
-            {
-                return "Published";
-            }
-
-            if (string.Equals(metadataStatus, "Published", StringComparison.OrdinalIgnoreCase))
-            {
-                return "Revoked";
-            }
-
             return string.IsNullOrWhiteSpace(metadataStatus) ? "Draft" : metadataStatus;
         }
 
@@ -302,7 +292,7 @@ namespace NaturaCo.RecipeSyncApi.Services
                 return;
             }
 
-            SetCategoryVisibility(hccApp, categoryBvin, false);
+            SetRecipeCategoryStatus(hccApp, categoryBvin, "Published");
             SetBundleStatus(hccApp, bundleBvin, "Active");
         }
 
@@ -314,7 +304,7 @@ namespace NaturaCo.RecipeSyncApi.Services
                 return;
             }
 
-            SetCategoryVisibility(hccApp, categoryBvin, true);
+            SetRecipeCategoryStatus(hccApp, categoryBvin, "Revoked");
             SetBundleStatus(hccApp, bundleBvin, "Disabled");
         }
 
@@ -345,13 +335,11 @@ namespace NaturaCo.RecipeSyncApi.Services
 
         private static void ApplyCategoryValues(object category, SaveRecipeRequest request)
         {
-            var hidden = !(request.PublishAfterSave || string.Equals(request.Status, "Published", StringComparison.OrdinalIgnoreCase));
-
             SetPropertyIfPresent(category, "Name", request.RecipeName);
             SetPropertyIfPresent(category, "Description", RecipeMetadataFormatter.Apply(request.Description, request));
             SetPropertyIfPresent(category, "MetaDescription", request.ShortDescription ?? request.Description);
             SetPropertyIfPresent(category, "RewriteUrl", BuildSlug(request.RecipeName));
-            SetPropertyIfPresent(category, "Hidden", hidden);
+            SetPropertyIfPresent(category, "Hidden", true);
             SetPropertyIfPresent(category, "ShowInTopMenu", false);
         }
 
@@ -455,7 +443,7 @@ namespace NaturaCo.RecipeSyncApi.Services
             TryInvokeAny(relations, new[] { "Create", "Add" }, association);
         }
 
-        private static void SetCategoryVisibility(object hccApp, string categoryBvin, bool hidden)
+        private static void SetRecipeCategoryStatus(object hccApp, string categoryBvin, string status)
         {
             if (string.IsNullOrWhiteSpace(categoryBvin))
             {
@@ -470,10 +458,14 @@ namespace NaturaCo.RecipeSyncApi.Services
                 return;
             }
 
-            SetPropertyIfPresent(category, "Hidden", hidden);
+            var description = Convert.ToString(GetPropertyIfPresent(category, "Description"));
+            SetPropertyIfPresent(category, "Description", RecipeMetadataFormatter.ApplyStatus(description, status));
+            SetPropertyIfPresent(category, "Hidden", true);
+            SetPropertyIfPresent(category, "ShowInTopMenu", false);
+
             var updated = TryInvokeAny(catalogServices, new[] { "CategoryUpdate", "UpdateCategory" }, category)
                 ?? TryInvokeAny(categories, new[] { "Update" }, category);
-            EnsureOperationSucceeded(updated, "A kategoria lathatosaganak frissitese nem sikerult.");
+            EnsureOperationSucceeded(updated, "A recept kategoria allapotanak frissitese nem sikerult.");
         }
 
         private static void SetBundleStatus(object hccApp, string bundleBvin, string statusName)

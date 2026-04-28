@@ -1,6 +1,6 @@
 <dotnetnuke type="Package" version="8.0">
   <packages>
-    <package name="NaturaCo-api" type="Module" version="01.00.11">
+    <package name="NaturaCo-api" type="Module" version="01.00.12">
       <friendlyName>NaturaCo API</friendlyName>
       <description>Minimal DNN module package for the NaturaCo RecipeSync API.</description>
       <owner>
