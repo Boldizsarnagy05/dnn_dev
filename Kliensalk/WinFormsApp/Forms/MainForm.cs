@@ -814,6 +814,8 @@ namespace NaturaCo.RecipeEditor.Forms
                 Status   = "Draft",
                 Servings = 4
             };
+            if (cmbMealType.SelectedIndex < 0)
+                cmbMealType.SelectedIndex = 0;
             RefreshIngredientGrid();
             SetStatus("Draft");
             RecalculateTotals();
