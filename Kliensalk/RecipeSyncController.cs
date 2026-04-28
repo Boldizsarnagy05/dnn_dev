@@ -215,5 +215,190 @@ namespace NaturaCo.Modules.RecipeModule.Controllers
                     new { Success = false, Message = ex.Message });
             }
         }
+
+        // ------------------------------------------------------------------
+        // POST /DesktopModules/NaturaCo/API/RecipeSync/Save
+        // ------------------------------------------------------------------
+        [HttpPost]
+        public HttpResponseMessage Save([FromBody] SaveRecipeRequest req)
+        {
+            if (req == null)
+                return Request.CreateResponse(HttpStatusCode.BadRequest,
+                    new { Success = false, Message = "Ures request body." });
+
+            try
+            {
+                int recipeId;
+
+                using (var conn = new SqlConnection(ConnStr))
+                {
+                    conn.Open();
+
+                    if (req.RecipeId.HasValue && req.RecipeId.Value > 0)
+                    {
+                        // UPDATE
+                        using (var cmd = new SqlCommand(@"
+                            UPDATE dbo.RecipeRecipes SET
+                                RecipeName       = @RecipeName,
+                                ShortDescription = @ShortDescription,
+                                Description      = @Description,
+                                Category         = @MealType,
+                                AuthorName       = @AuthorName,
+                                PreviewImageURL  = @PreviewImageUrl,
+                                Tags             = @Tags,
+                                Servings         = @Servings,
+                                PrepTimeMinutes  = @PrepTimeMinutes,
+                                CookTimeMinutes  = @CookTimeMinutes,
+                                TotalCalories    = @TotalCalories,
+                                EstimatedCost    = @EstimatedCost,
+                                Steps            = @Steps,
+                                Status           = @Status,
+                                CategoryBvin     = @CategoryBvin,
+                                BundleBvin       = @BundleBvin
+                            WHERE RecipeID = @RecipeId", conn))
+                        {
+                            AddRecipeParams(cmd, req);
+                            cmd.Parameters.AddWithValue("@RecipeId", req.RecipeId.Value);
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        recipeId = req.RecipeId.Value;
+
+                        // Hozzávalók törlése és újraszúrása
+                        using (var del = new SqlCommand(
+                            "DELETE FROM dbo.RecipeIngredients WHERE RecipeID = @id", conn))
+                        {
+                            del.Parameters.AddWithValue("@id", recipeId);
+                            del.ExecuteNonQuery();
+                        }
+                    }
+                    else
+                    {
+                        // INSERT
+                        using (var cmd = new SqlCommand(@"
+                            INSERT INTO dbo.RecipeRecipes
+                                (RecipeName, ShortDescription, Description, Category,
+                                 AuthorName, PreviewImageURL, Tags, Servings,
+                                 PrepTimeMinutes, CookTimeMinutes, TotalCalories,
+                                 EstimatedCost, Steps, Status, CategoryBvin, BundleBvin,
+                                 PortalID, CreatedByUserID, CreatedOnDate)
+                            VALUES
+                                (@RecipeName, @ShortDescription, @Description, @MealType,
+                                 @AuthorName, @PreviewImageUrl, @Tags, @Servings,
+                                 @PrepTimeMinutes, @CookTimeMinutes, @TotalCalories,
+                                 @EstimatedCost, @Steps, @Status, @CategoryBvin, @BundleBvin,
+                                 0, -1, GETDATE());
+                            SELECT SCOPE_IDENTITY();", conn))
+                        {
+                            AddRecipeParams(cmd, req);
+                            recipeId = Convert.ToInt32(cmd.ExecuteScalar());
+                        }
+                    }
+
+                    // Hozzávalók beszúrása
+                    if (req.Ingredients != null)
+                    {
+                        foreach (var ing in req.Ingredients)
+                        {
+                            using (var ins = new SqlCommand(@"
+                                INSERT INTO dbo.RecipeIngredients
+                                    (RecipeID, IngredientName, Amount, Unit,
+                                     ProductBvin, Calories, Price,
+                                     PackageQuantity, PackageUnit, SortOrder)
+                                VALUES
+                                    (@RecipeID, @IngredientName, @Amount, @Unit,
+                                     @ProductBvin, @Calories, @Price,
+                                     @PackageQuantity, @PackageUnit, @SortOrder)", conn))
+                            {
+                                ins.Parameters.AddWithValue("@RecipeID",       recipeId);
+                                ins.Parameters.AddWithValue("@IngredientName", ing.ProductName ?? string.Empty);
+                                ins.Parameters.AddWithValue("@Amount",         ing.Quantity);
+                                ins.Parameters.AddWithValue("@Unit",           ing.Unit ?? string.Empty);
+                                ins.Parameters.AddWithValue("@ProductBvin",    (object)ing.ProductBvin ?? DBNull.Value);
+                                ins.Parameters.AddWithValue("@Calories",       ing.Calories);
+                                ins.Parameters.AddWithValue("@Price",          ing.Price);
+                                ins.Parameters.AddWithValue("@PackageQuantity",ing.PackageQuantity);
+                                ins.Parameters.AddWithValue("@PackageUnit",    ing.PackageUnit ?? string.Empty);
+                                ins.Parameters.AddWithValue("@SortOrder",      ing.SortOrder);
+                                ins.ExecuteNonQuery();
+                            }
+                        }
+                    }
+                }
+
+                return Request.CreateResponse(HttpStatusCode.OK, new
+                {
+                    Success      = true,
+                    RecipeId     = recipeId,
+                    CategoryBvin = req.CategoryBvin ?? string.Empty,
+                    BundleBvin   = req.BundleBvin   ?? string.Empty,
+                    Status       = req.Status        ?? "Draft",
+                    Message      = "Recept mentve."
+                });
+            }
+            catch (Exception ex)
+            {
+                return Request.CreateResponse(HttpStatusCode.InternalServerError,
+                    new { Success = false, Message = ex.Message });
+            }
+        }
+
+        private static void AddRecipeParams(SqlCommand cmd, SaveRecipeRequest req)
+        {
+            cmd.Parameters.AddWithValue("@RecipeName",       req.RecipeName       ?? string.Empty);
+            cmd.Parameters.AddWithValue("@ShortDescription", req.ShortDescription ?? string.Empty);
+            cmd.Parameters.AddWithValue("@Description",      req.Description      ?? string.Empty);
+            cmd.Parameters.AddWithValue("@MealType",         req.MealType         ?? string.Empty);
+            cmd.Parameters.AddWithValue("@AuthorName",       req.AuthorName       ?? string.Empty);
+            cmd.Parameters.AddWithValue("@PreviewImageUrl",  req.PreviewImageUrl  ?? string.Empty);
+            cmd.Parameters.AddWithValue("@Tags",             req.Tags             ?? string.Empty);
+            cmd.Parameters.AddWithValue("@Servings",         req.Servings);
+            cmd.Parameters.AddWithValue("@PrepTimeMinutes",  req.PrepTimeMinutes);
+            cmd.Parameters.AddWithValue("@CookTimeMinutes",  req.CookTimeMinutes);
+            cmd.Parameters.AddWithValue("@TotalCalories",    (object)req.TotalCalories ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@EstimatedCost",    req.EstimatedCost);
+            cmd.Parameters.AddWithValue("@Steps",            req.Steps            ?? string.Empty);
+            cmd.Parameters.AddWithValue("@Status",           req.Status           ?? "Draft");
+            cmd.Parameters.AddWithValue("@CategoryBvin",     req.CategoryBvin     ?? string.Empty);
+            cmd.Parameters.AddWithValue("@BundleBvin",       req.BundleBvin       ?? string.Empty);
+        }
+    }
+
+    // DTO-k a Save vegponthoz
+    public class SaveRecipeRequest
+    {
+        public int?   RecipeId         { get; set; }
+        public string RecipeName       { get; set; }
+        public string MealType         { get; set; }
+        public string ShortDescription { get; set; }
+        public string Description      { get; set; }
+        public string Steps            { get; set; }
+        public string Tags             { get; set; }
+        public int    Servings         { get; set; }
+        public int    PrepTimeMinutes  { get; set; }
+        public int    CookTimeMinutes  { get; set; }
+        public int?   TotalCalories    { get; set; }
+        public decimal EstimatedCost   { get; set; }
+        public string AuthorName       { get; set; }
+        public string PreviewImageUrl  { get; set; }
+        public string Status           { get; set; }
+        public string CategoryBvin     { get; set; }
+        public string BundleBvin       { get; set; }
+        public bool   CreateOrUpdateBundle { get; set; }
+        public bool   PublishAfterSave     { get; set; }
+        public List<IngredientDto> Ingredients { get; set; }
+    }
+
+    public class IngredientDto
+    {
+        public string  ProductBvin     { get; set; }
+        public string  ProductName     { get; set; }
+        public decimal Quantity        { get; set; }
+        public string  Unit            { get; set; }
+        public int     SortOrder       { get; set; }
+        public decimal Calories        { get; set; }
+        public decimal Price           { get; set; }
+        public decimal PackageQuantity { get; set; }
+        public string  PackageUnit     { get; set; }
     }
 }
