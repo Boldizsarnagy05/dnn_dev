@@ -34,18 +34,20 @@ namespace NaturaCo.RecipeEditor.Services
         // Kategóriák
         // ------------------------------------------------------------------
 
-        public List<HccCategory> GetCategories()
+        public List<HccCategory> GetCategories(string excludeParentBvin = null)
         {
             var response = _api.CategoriesFindAll();
 
             if (response.Errors.Count > 0)
                 throw new Exception(string.Join(", ", response.Errors.Select(e => e.Description)));
 
-            // A NaturaCo modul a recepteket Hidden=true Hotcakes category-kent hozza letre
-            // (lasd CLIENT_APP_CONTEXT.md - "A recept domain modellje"). A katalogus-bongeszobe
-            // csak a valodi termekkategoriak (Hidden=false) valok.
+            // Csak latható (Hidden=false) kategoriak. Ha excludeParentBvin meg van adva,
+            // kizarjuk azokat a kategoriat amelyek annak alatta vannak (recept-kategoriak).
             return response.Content
                 .Where(c => !c.Hidden)
+                .Where(c => string.IsNullOrEmpty(excludeParentBvin)
+                            || (!string.Equals(c.ParentId, excludeParentBvin, StringComparison.OrdinalIgnoreCase)
+                                && !string.Equals(c.Bvin,     excludeParentBvin, StringComparison.OrdinalIgnoreCase)))
                 .Select(c => new HccCategory
                 {
                     Bvin = c.Bvin,

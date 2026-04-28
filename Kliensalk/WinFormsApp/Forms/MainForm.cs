@@ -117,7 +117,7 @@ namespace NaturaCo.RecipeEditor.Forms
         {
             try
             {
-                var cats = _hccService.GetCategories();
+                var cats = _hccService.GetCategories(_recipeRootCategoryBvin);
                 cmbCategory.DataSource    = cats;
                 cmbCategory.DisplayMember = "Name";
                 cmbCategory.ValueMember   = "Bvin";
