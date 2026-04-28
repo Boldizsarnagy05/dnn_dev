@@ -153,11 +153,20 @@
 
         function cartQuantity(item) {
             var needed = scaled(Number(item.quantity || 1));
+            var unit = String(item.unit || '').toLowerCase().trim();
+
+            if (unit === 'db') {
+                // Darab: lineárisan skáláz, felfelé kerekít
+                return Math.max(1, Math.ceil(needed));
+            }
+            // Gramm / egyéb súly: kiszerelés alapján
             var pack = Number(item.packageQuantity || 0);
             if (pack > 0) {
                 return Math.max(1, Math.ceil(needed / pack));
             }
-            return Math.max(1, Math.ceil(needed));
+            // Nincs kiszerelés: 1 csomag = alap recept mennyiség
+            var baseQty = Number(item.quantity || 1);
+            return Math.max(1, Math.ceil(needed / baseQty));
         }
 
         function isCartable(item) {
@@ -218,9 +227,19 @@
                 var price = Number(line.item.price || 0) * line.qty;
                 total += price;
                 calories += Number(line.item.calories || 0) * line.qty;
+                var pkgInfo = '';
+                var pq = Number(line.item.packageQuantity || 0);
+                var pu = line.item.packageUnit || line.item.unit || '';
+                if (pq > 0) {
+                    pkgInfo = '<span class="nc-line-pkg">(' + pq + ' ' + pu + ')</span>';
+                } else {
+                    var q = Number(line.item.quantity || 0);
+                    var u = line.item.unit || '';
+                    if (q > 0) { pkgInfo = '<span class="nc-line-pkg">(' + q + ' ' + u + ')</span>'; }
+                }
                 return '<div class="nc-cart-line" data-preview-line="' + key + '">' +
                     '<button type="button" class="nc-line-remove" data-line-remove="' + key + '" aria-label="Termék törlése">x</button>' +
-                    '<strong class="nc-line-name">' + line.item.name + '</strong>' +
+                    '<strong class="nc-line-name">' + line.item.name + pkgInfo + '</strong>' +
                     '<div class="nc-line-stepper"><button type="button" data-line-minus="' + key + '">-</button><strong>' + line.qty + '</strong><button type="button" data-line-plus="' + key + '">+</button></div>' +
                     '<div class="nc-line-summary"><span>' + Math.round(Number(line.item.calories || 0) * line.qty) + ' kcal</span><strong>' + money(price) + ' Ft</strong></div>' +
                     '</div>';
