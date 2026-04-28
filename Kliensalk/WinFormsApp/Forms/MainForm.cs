@@ -599,11 +599,14 @@ namespace NaturaCo.RecipeEditor.Forms
 
             var request = BuildSaveRequest(_currentRecipe, publishAfterSave: false);
 
+            var isNew = !request.RecipeId.HasValue || request.RecipeId.Value == 0;
+
             try
             {
                 SetBusy(true);
                 var result = await _recipeService.SaveAsync(request);
                 await ApplyServerResult(result, defaultSuccess: "Tervezet elmentve.");
+                if (isNew) NewRecipe();
             }
             catch (Exception ex)
             {
