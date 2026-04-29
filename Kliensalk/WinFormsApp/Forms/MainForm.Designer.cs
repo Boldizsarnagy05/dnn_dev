@@ -378,7 +378,7 @@ namespace NaturaCo.RecipeEditor.Forms
             this.txtSteps.Multiline = true;
             this.txtSteps.Name = "txtSteps";
             this.txtSteps.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtSteps.Size = new System.Drawing.Size(940, 115);
+            this.txtSteps.Size = new System.Drawing.Size(940, 105);
             this.txtSteps.TabIndex = 29;
             // 
             // lblTotalCost

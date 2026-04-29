@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -60,6 +61,55 @@ namespace NaturaCo.RecipeEditor.Forms
             ApplyThemeRecursive(Controls);
         }
 
+        private static void ApplyRoundedButton(Button btn, int radius)
+        {
+            // Region: a hit-test és a gomb kivágása lekerekített
+            btn.Region = BuildRoundedRegion(btn.Width, btn.Height, radius);
+
+            // Paint: anti-aliased lekerekített háttér + felirat
+            btn.Paint += (s, e) =>
+            {
+                var g = e.Graphics;
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+
+                var backColor = btn.ClientRectangle.Contains(btn.PointToClient(Cursor.Position))
+                    ? btn.FlatAppearance.MouseOverBackColor
+                    : btn.BackColor;
+                if (backColor == Color.Empty) backColor = btn.BackColor;
+
+                using (var path = RoundedPath(btn.Width, btn.Height, radius))
+                using (var brush = new SolidBrush(backColor))
+                {
+                    g.FillPath(brush, path);
+                }
+
+                using (var sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
+                using (var tb = new SolidBrush(btn.ForeColor))
+                {
+                    g.DrawString(btn.Text, btn.Font, tb,
+                        new RectangleF(0, 0, btn.Width, btn.Height), sf);
+                }
+            };
+        }
+
+        private static Region BuildRoundedRegion(int w, int h, int r)
+        {
+            using (var path = RoundedPath(w, h, r))
+                return new Region(path);
+        }
+
+        private static GraphicsPath RoundedPath(int w, int h, int r)
+        {
+            int d = r * 2;
+            var path = new GraphicsPath();
+            path.AddArc(0,     0,     d, d, 180, 90);
+            path.AddArc(w - d, 0,     d, d, 270, 90);
+            path.AddArc(w - d, h - d, d, d,   0, 90);
+            path.AddArc(0,     h - d, d, d,  90, 90);
+            path.CloseFigure();
+            return path;
+        }
+
         private void ApplyThemeRecursive(System.Windows.Forms.Control.ControlCollection controls)
         {
             foreach (Control c in controls)
@@ -74,10 +124,11 @@ namespace NaturaCo.RecipeEditor.Forms
                         btn.BackColor = ThemeRed;
                         btn.ForeColor = ThemeWhite;
                         btn.FlatStyle = FlatStyle.Flat;
-                        btn.FlatAppearance.BorderSize  = 0;
+                        btn.FlatAppearance.BorderSize         = 0;
                         btn.FlatAppearance.MouseOverBackColor = Color.FromArgb(165, 55, 55);
                         btn.FlatAppearance.MouseDownBackColor = Color.FromArgb(110, 20, 20);
                         btn.Font = new Font(btn.Font, FontStyle.Bold);
+                        ApplyRoundedButton(btn, radius: 8);
                         break;
 
                     case TextBox txt:
