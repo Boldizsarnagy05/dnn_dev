@@ -100,6 +100,14 @@ namespace NaturaCo.RecipeEditor.Forms
                 if (dgvIngredients.IsCurrentCellDirty)
                     dgvIngredients.CommitEdit(DataGridViewDataErrorContexts.Commit);
             };
+            dgvIngredients.KeyDown += (s, e) =>
+            {
+                if (e.KeyCode == Keys.Delete && !dgvIngredients.IsCurrentCellInEditMode)
+                {
+                    RemoveSelectedIngredients();
+                    e.Handled = true;
+                }
+            };
         }
 
         // ------------------------------------------------------------------
@@ -463,16 +471,36 @@ namespace NaturaCo.RecipeEditor.Forms
         {
             try
             {
-                _currentCategoryBvin      = categoryBvin;
-                _allProducts              = _hccService.GetProductsByCategory(categoryBvin);
-                lstProducts.DataSource    = _allProducts;
-                lstProducts.DisplayMember = "ProductName";
-                lstProducts.ValueMember   = "Bvin";
+                _currentCategoryBvin = categoryBvin;
+                _allProducts         = _hccService.GetProductsByCategory(categoryBvin);
+                txtProductSearch.Text = string.Empty;
+                ApplyProductFilter();
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Termekek betoltese sikertelen: " + ex.Message);
             }
+        }
+
+        private void ApplyProductFilter()
+        {
+            var filter = txtProductSearch.Text.Trim();
+            var filtered = string.IsNullOrEmpty(filter)
+                ? _allProducts
+                : _allProducts
+                    .Where(p => p.ProductName != null &&
+                                p.ProductName.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0)
+                    .ToList();
+
+            lstProducts.DataSource    = null;
+            lstProducts.DataSource    = filtered;
+            lstProducts.DisplayMember = "ProductName";
+            lstProducts.ValueMember   = "Bvin";
+        }
+
+        private void txtProductSearch_TextChanged(object sender, EventArgs e)
+        {
+            ApplyProductFilter();
         }
 
         private bool IsGramCategory(string categoryBvin)
@@ -485,6 +513,42 @@ namespace NaturaCo.RecipeEditor.Forms
         {
             if (lstProducts.SelectedItem is HccProduct product)
                 AddIngredient(product);
+        }
+
+        private void btnRemoveIngredient_Click(object sender, EventArgs e)
+        {
+            RemoveSelectedIngredients();
+        }
+
+        private void RemoveSelectedIngredients()
+        {
+            if (dgvIngredients.SelectedRows.Count == 0 && dgvIngredients.CurrentRow == null)
+            {
+                MessageBox.Show("Jelöljön ki egy hozzávalót a törléshez.");
+                return;
+            }
+
+            var toRemove = dgvIngredients.SelectedRows.Count > 0
+                ? dgvIngredients.SelectedRows
+                    .Cast<DataGridViewRow>()
+                    .Select(r => r.DataBoundItem as RecipeIngredient)
+                    .Where(i => i != null)
+                    .ToList()
+                : new List<RecipeIngredient>
+                    { dgvIngredients.CurrentRow?.DataBoundItem as RecipeIngredient };
+
+            toRemove = toRemove.Where(i => i != null).ToList();
+            if (toRemove.Count == 0) return;
+
+            foreach (var ing in toRemove)
+                _currentRecipe.Ingredients.Remove(ing);
+
+            // SortOrder újraszámolás
+            for (int i = 0; i < _currentRecipe.Ingredients.Count; i++)
+                _currentRecipe.Ingredients[i].SortOrder = i + 1;
+
+            RefreshIngredientGrid();
+            RecalculateTotals();
         }
 
         private void btnAddCustomIngredient_Click(object sender, EventArgs e)

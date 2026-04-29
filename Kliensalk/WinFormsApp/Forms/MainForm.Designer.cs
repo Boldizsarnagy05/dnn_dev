@@ -27,8 +27,10 @@ namespace NaturaCo.RecipeEditor.Forms
         private System.Windows.Forms.Label           lblCategoryFilter;
         private System.Windows.Forms.ComboBox        cmbCategory;
         private System.Windows.Forms.Label           lblProductsLabel;
+        private System.Windows.Forms.TextBox         txtProductSearch;
         private System.Windows.Forms.ListBox         lstProducts;
         private System.Windows.Forms.Label           lblCatalogHint;
+        private System.Windows.Forms.Button          btnRemoveIngredient;
 
         private System.Windows.Forms.Label           lblIngredients;
         private System.Windows.Forms.Button          btnAddCustomIngredient;
@@ -78,8 +80,10 @@ namespace NaturaCo.RecipeEditor.Forms
             this.lblCategoryFilter = new System.Windows.Forms.Label();
             this.cmbCategory = new System.Windows.Forms.ComboBox();
             this.lblProductsLabel = new System.Windows.Forms.Label();
+            this.txtProductSearch = new System.Windows.Forms.TextBox();
             this.lstProducts = new System.Windows.Forms.ListBox();
             this.lblCatalogHint = new System.Windows.Forms.Label();
+            this.btnRemoveIngredient = new System.Windows.Forms.Button();
             this.lblIngredients = new System.Windows.Forms.Label();
             this.btnAddCustomIngredient = new System.Windows.Forms.Button();
             this.dgvIngredients = new System.Windows.Forms.DataGridView();
@@ -292,21 +296,29 @@ namespace NaturaCo.RecipeEditor.Forms
             this.lblProductsLabel.TabIndex = 23;
             this.lblProductsLabel.Text = "Termékek:";
             // 
+            // txtProductSearch
+            //
+            this.txtProductSearch.Location = new System.Drawing.Point(20, 405);
+            this.txtProductSearch.Name = "txtProductSearch";
+            this.txtProductSearch.Size = new System.Drawing.Size(290, 39);
+            this.txtProductSearch.TabIndex = 23;
+            this.txtProductSearch.TextChanged += new System.EventHandler(this.txtProductSearch_TextChanged);
+            //
             // lstProducts
-            // 
+            //
             this.lstProducts.FormattingEnabled = true;
             this.lstProducts.ItemHeight = 32;
-            this.lstProducts.Location = new System.Drawing.Point(20, 403);
+            this.lstProducts.Location = new System.Drawing.Point(20, 450);
             this.lstProducts.Name = "lstProducts";
             this.lstProducts.Size = new System.Drawing.Size(290, 100);
             this.lstProducts.TabIndex = 24;
             this.lstProducts.DoubleClick += new System.EventHandler(this.lstProducts_DoubleClick);
-            // 
+            //
             // lblCatalogHint
-            // 
+            //
             this.lblCatalogHint.AutoSize = true;
             this.lblCatalogHint.Font = new System.Drawing.Font("Segoe UI", 8F, System.Drawing.FontStyle.Italic);
-            this.lblCatalogHint.Location = new System.Drawing.Point(21, 541);
+            this.lblCatalogHint.Location = new System.Drawing.Point(21, 580);
             this.lblCatalogHint.Name = "lblCatalogHint";
             this.lblCatalogHint.Size = new System.Drawing.Size(408, 30);
             this.lblCatalogHint.TabIndex = 25;
@@ -324,12 +336,21 @@ namespace NaturaCo.RecipeEditor.Forms
             //
             // btnAddCustomIngredient
             //
-            this.btnAddCustomIngredient.Location = new System.Drawing.Point(20, 575);
+            this.btnAddCustomIngredient.Location = new System.Drawing.Point(20, 615);
             this.btnAddCustomIngredient.Name = "btnAddCustomIngredient";
             this.btnAddCustomIngredient.Size = new System.Drawing.Size(290, 34);
             this.btnAddCustomIngredient.TabIndex = 50;
             this.btnAddCustomIngredient.Text = "+ Egyedi hozzávaló";
             this.btnAddCustomIngredient.Click += new System.EventHandler(this.btnAddCustomIngredient_Click);
+            //
+            // btnRemoveIngredient
+            //
+            this.btnRemoveIngredient.Location = new System.Drawing.Point(800, 535);
+            this.btnRemoveIngredient.Name = "btnRemoveIngredient";
+            this.btnRemoveIngredient.Size = new System.Drawing.Size(160, 34);
+            this.btnRemoveIngredient.TabIndex = 53;
+            this.btnRemoveIngredient.Text = "- Hozzávaló törlése";
+            this.btnRemoveIngredient.Click += new System.EventHandler(this.btnRemoveIngredient_Click);
             //
             // dgvIngredients
             // 
@@ -345,15 +366,15 @@ namespace NaturaCo.RecipeEditor.Forms
             // lblSteps
             // 
             this.lblSteps.AutoSize = true;
-            this.lblSteps.Location = new System.Drawing.Point(20, 633);
+            this.lblSteps.Location = new System.Drawing.Point(20, 670);
             this.lblSteps.Name = "lblSteps";
             this.lblSteps.Size = new System.Drawing.Size(202, 32);
             this.lblSteps.TabIndex = 28;
             this.lblSteps.Text = "Elkészítés lépései:";
-            // 
+            //
             // txtSteps
-            // 
-            this.txtSteps.Location = new System.Drawing.Point(20, 653);
+            //
+            this.txtSteps.Location = new System.Drawing.Point(20, 690);
             this.txtSteps.Multiline = true;
             this.txtSteps.Name = "txtSteps";
             this.txtSteps.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
@@ -364,63 +385,63 @@ namespace NaturaCo.RecipeEditor.Forms
             // 
             this.lblTotalCost.AutoSize = true;
             this.lblTotalCost.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.lblTotalCost.Location = new System.Drawing.Point(20, 772);
+            this.lblTotalCost.Location = new System.Drawing.Point(20, 809);
             this.lblTotalCost.Name = "lblTotalCost";
             this.lblTotalCost.Size = new System.Drawing.Size(242, 32);
             this.lblTotalCost.TabIndex = 30;
             this.lblTotalCost.Text = "Becsült költség: 0 Ft";
-            // 
+            //
             // lblCostPerServing
-            // 
+            //
             this.lblCostPerServing.AutoSize = true;
-            this.lblCostPerServing.Location = new System.Drawing.Point(280, 772);
+            this.lblCostPerServing.Location = new System.Drawing.Point(280, 809);
             this.lblCostPerServing.Name = "lblCostPerServing";
             this.lblCostPerServing.Size = new System.Drawing.Size(196, 32);
             this.lblCostPerServing.TabIndex = 31;
             this.lblCostPerServing.Text = "Adagonként: 0 Ft";
-            // 
+            //
             // lblTotalCalories
-            // 
+            //
             this.lblTotalCalories.AutoSize = true;
             this.lblTotalCalories.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.lblTotalCalories.Location = new System.Drawing.Point(20, 792);
+            this.lblTotalCalories.Location = new System.Drawing.Point(20, 829);
             this.lblTotalCalories.Name = "lblTotalCalories";
             this.lblTotalCalories.Size = new System.Drawing.Size(238, 32);
             this.lblTotalCalories.TabIndex = 36;
             this.lblTotalCalories.Text = "Össz. kalória: 0 kcal";
-            // 
+            //
             // lblCaloriesPerServing
-            // 
+            //
             this.lblCaloriesPerServing.AutoSize = true;
-            this.lblCaloriesPerServing.Location = new System.Drawing.Point(280, 792);
+            this.lblCaloriesPerServing.Location = new System.Drawing.Point(280, 829);
             this.lblCaloriesPerServing.Name = "lblCaloriesPerServing";
             this.lblCaloriesPerServing.Size = new System.Drawing.Size(217, 32);
             this.lblCaloriesPerServing.TabIndex = 37;
             this.lblCaloriesPerServing.Text = "Adagonként: 0 kcal";
-            // 
+            //
             // btnSaveDraft
-            // 
-            this.btnSaveDraft.Location = new System.Drawing.Point(530, 768);
+            //
+            this.btnSaveDraft.Location = new System.Drawing.Point(530, 805);
             this.btnSaveDraft.Name = "btnSaveDraft";
             this.btnSaveDraft.Size = new System.Drawing.Size(150, 35);
             this.btnSaveDraft.TabIndex = 32;
             this.btnSaveDraft.Text = "Mentés tervezetként";
             this.btnSaveDraft.UseVisualStyleBackColor = true;
             this.btnSaveDraft.Click += new System.EventHandler(this.btnSaveDraft_Click);
-            // 
+            //
             // btnPublish
-            // 
-            this.btnPublish.Location = new System.Drawing.Point(688, 768);
+            //
+            this.btnPublish.Location = new System.Drawing.Point(688, 805);
             this.btnPublish.Name = "btnPublish";
             this.btnPublish.Size = new System.Drawing.Size(120, 35);
             this.btnPublish.TabIndex = 33;
             this.btnPublish.Text = "Publikálás";
             this.btnPublish.UseVisualStyleBackColor = true;
             this.btnPublish.Click += new System.EventHandler(this.btnPublish_Click);
-            // 
+            //
             // btnRevoke
-            // 
-            this.btnRevoke.Location = new System.Drawing.Point(816, 768);
+            //
+            this.btnRevoke.Location = new System.Drawing.Point(816, 805);
             this.btnRevoke.Name = "btnRevoke";
             this.btnRevoke.Size = new System.Drawing.Size(130, 35);
             this.btnRevoke.TabIndex = 34;
@@ -446,7 +467,7 @@ namespace NaturaCo.RecipeEditor.Forms
             this.grpRecipes.Controls.Add(this.btnNewRecipe);
             this.grpRecipes.Location = new System.Drawing.Point(1010, 10);
             this.grpRecipes.Name = "grpRecipes";
-            this.grpRecipes.Size = new System.Drawing.Size(290, 786);
+            this.grpRecipes.Size = new System.Drawing.Size(290, 823);
             this.grpRecipes.TabIndex = 50;
             this.grpRecipes.TabStop = false;
             this.grpRecipes.Text = "Meglévő receptek";
@@ -464,7 +485,7 @@ namespace NaturaCo.RecipeEditor.Forms
             this.lvRecipes.Location = new System.Drawing.Point(8, 22);
             this.lvRecipes.MultiSelect = false;
             this.lvRecipes.Name = "lvRecipes";
-            this.lvRecipes.Size = new System.Drawing.Size(272, 730);
+            this.lvRecipes.Size = new System.Drawing.Size(272, 767);
             this.lvRecipes.TabIndex = 51;
             this.lvRecipes.UseCompatibleStateImageBehavior = false;
             this.lvRecipes.View = System.Windows.Forms.View.Details;
@@ -476,7 +497,7 @@ namespace NaturaCo.RecipeEditor.Forms
                 System.Windows.Forms.AnchorStyles.Bottom |
                 System.Windows.Forms.AnchorStyles.Left |
                 System.Windows.Forms.AnchorStyles.Right));
-            this.btnNewRecipe.Location = new System.Drawing.Point(8, 758);
+            this.btnNewRecipe.Location = new System.Drawing.Point(8, 795);
             this.btnNewRecipe.Name = "btnNewRecipe";
             this.btnNewRecipe.Size = new System.Drawing.Size(272, 28);
             this.btnNewRecipe.TabIndex = 52;
@@ -488,7 +509,7 @@ namespace NaturaCo.RecipeEditor.Forms
             //
             this.AutoScaleDimensions = new System.Drawing.SizeF(13F, 32F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1315, 828);
+            this.ClientSize = new System.Drawing.Size(1315, 865);
             this.Controls.Add(this.lblRecipeNameCaption);
             this.Controls.Add(this.txtRecipeName);
             this.Controls.Add(this.lblStatusCaption);
@@ -507,10 +528,12 @@ namespace NaturaCo.RecipeEditor.Forms
             this.Controls.Add(this.lblCategoryFilter);
             this.Controls.Add(this.cmbCategory);
             this.Controls.Add(this.lblProductsLabel);
+            this.Controls.Add(this.txtProductSearch);
             this.Controls.Add(this.lstProducts);
             this.Controls.Add(this.lblCatalogHint);
             this.Controls.Add(this.lblIngredients);
             this.Controls.Add(this.btnAddCustomIngredient);
+            this.Controls.Add(this.btnRemoveIngredient);
             this.Controls.Add(this.dgvIngredients);
             this.Controls.Add(this.lblSteps);
             this.Controls.Add(this.txtSteps);
