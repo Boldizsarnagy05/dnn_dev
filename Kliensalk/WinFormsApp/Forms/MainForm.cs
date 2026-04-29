@@ -34,6 +34,13 @@ namespace NaturaCo.RecipeEditor.Forms
             "a42772d0-d5eb-430d-b101-306a1fd0dc17"  // Rost es vitamin
         };
 
+        private static readonly Color ThemeNavy    = Color.FromArgb(26, 42, 58);
+        private static readonly Color ThemeRed     = Color.FromArgb(139, 35, 35);
+        private static readonly Color ThemeWhite   = Color.White;
+        private static readonly Color ThemeBg      = Color.FromArgb(250, 250, 252);
+        private static readonly Color ThemeGridAlt = Color.FromArgb(244, 247, 251);
+        private static readonly Color ThemeGrid    = Color.FromArgb(205, 215, 228);
+
         public MainForm(HotCakesService hccService, RecipeApiService recipeService, string recipeRootCategoryBvin = "")
         {
             InitializeComponent();
@@ -43,6 +50,83 @@ namespace NaturaCo.RecipeEditor.Forms
 
             SetupIngredientGrid();
             SetupRecipeList();
+            ApplyTheme();
+        }
+
+        private void ApplyTheme()
+        {
+            BackColor = ThemeBg;
+            ApplyThemeRecursive(Controls);
+        }
+
+        private void ApplyThemeRecursive(System.Windows.Forms.Control.ControlCollection controls)
+        {
+            foreach (Control c in controls)
+            {
+                switch (c)
+                {
+                    case Label lbl:
+                        lbl.ForeColor = ThemeNavy;
+                        break;
+
+                    case Button btn:
+                        btn.BackColor = ThemeRed;
+                        btn.ForeColor = ThemeWhite;
+                        btn.FlatStyle = FlatStyle.Flat;
+                        btn.FlatAppearance.BorderSize  = 0;
+                        btn.FlatAppearance.MouseOverBackColor = Color.FromArgb(165, 55, 55);
+                        btn.FlatAppearance.MouseDownBackColor = Color.FromArgb(110, 20, 20);
+                        btn.Font = new Font(btn.Font, FontStyle.Bold);
+                        break;
+
+                    case TextBox txt:
+                        txt.ForeColor    = ThemeNavy;
+                        txt.BackColor    = ThemeWhite;
+                        txt.BorderStyle  = BorderStyle.FixedSingle;
+                        break;
+
+                    case ComboBox cmb:
+                        cmb.ForeColor = ThemeNavy;
+                        cmb.BackColor = ThemeWhite;
+                        break;
+
+                    case NumericUpDown nud:
+                        nud.ForeColor = ThemeNavy;
+                        nud.BackColor = ThemeWhite;
+                        break;
+
+                    case ListBox lst:
+                        lst.ForeColor = ThemeNavy;
+                        lst.BackColor = ThemeWhite;
+                        break;
+
+                    case ListView lv:
+                        lv.ForeColor = ThemeNavy;
+                        lv.BackColor = ThemeWhite;
+                        break;
+
+                    case GroupBox grp:
+                        grp.ForeColor = ThemeNavy;
+                        grp.BackColor = ThemeBg;
+                        ApplyThemeRecursive(grp.Controls);
+                        break;
+
+                    case DataGridView dgv:
+                        dgv.EnableHeadersVisualStyles = false;
+                        dgv.ColumnHeadersDefaultCellStyle.BackColor  = ThemeNavy;
+                        dgv.ColumnHeadersDefaultCellStyle.ForeColor  = ThemeWhite;
+                        dgv.ColumnHeadersDefaultCellStyle.Font       = new Font(dgv.Font, FontStyle.Bold);
+                        dgv.DefaultCellStyle.ForeColor                = ThemeNavy;
+                        dgv.DefaultCellStyle.BackColor                = ThemeWhite;
+                        dgv.DefaultCellStyle.SelectionBackColor       = ThemeRed;
+                        dgv.DefaultCellStyle.SelectionForeColor       = ThemeWhite;
+                        dgv.AlternatingRowsDefaultCellStyle.BackColor = ThemeGridAlt;
+                        dgv.GridColor       = ThemeGrid;
+                        dgv.BorderStyle     = BorderStyle.FixedSingle;
+                        dgv.BackgroundColor = ThemeBg;
+                        break;
+                }
+            }
         }
 
         private void SetupRecipeList()
