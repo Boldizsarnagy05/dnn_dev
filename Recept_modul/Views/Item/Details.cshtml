@@ -151,22 +151,42 @@
             return Math.round(value * 100) / 100;
         }
 
+        function normalizedAmount(value, unit) {
+            var amount = Number(value || 0);
+            var normalizedUnit = String(unit || '').toLowerCase().trim();
+
+            if (normalizedUnit === 'kg') return amount * 1000;
+            if (normalizedUnit === 'dkg') return amount * 10;
+            if (normalizedUnit === 'mg') return amount / 1000;
+            if (normalizedUnit === 'l') return amount * 1000;
+            if (normalizedUnit === 'dl') return amount * 100;
+            if (normalizedUnit === 'cl') return amount * 10;
+
+            return amount;
+        }
+
+        function normalizedUnit(unit) {
+            var value = String(unit || '').toLowerCase().trim();
+            if (value === 'kg' || value === 'dkg' || value === 'mg') return 'g';
+            if (value === 'l' || value === 'dl' || value === 'cl') return 'ml';
+            return value;
+        }
+
         function cartQuantity(item) {
             var needed = scaled(Number(item.quantity || 1));
-            var unit = String(item.unit || '').toLowerCase().trim();
-
-            if (unit === 'db') {
-                // Darab: lineárisan skáláz, felfelé kerekít
-                return Math.max(1, Math.ceil(needed));
-            }
-            // Gramm / egyéb súly: kiszerelés alapján
+            var unit = normalizedUnit(item.unit);
             var pack = Number(item.packageQuantity || 0);
-            if (pack > 0) {
-                return Math.max(1, Math.ceil(needed / pack));
+            var packUnit = normalizedUnit(item.packageUnit || item.unit);
+
+            if (pack > 0 && (!unit || !packUnit || unit === packUnit)) {
+                var normalizedNeeded = normalizedAmount(needed, item.unit);
+                var normalizedPack = normalizedAmount(pack, item.packageUnit || item.unit);
+                if (normalizedPack > 0) {
+                    return Math.max(1, Math.ceil(normalizedNeeded / normalizedPack));
+                }
             }
-            // Nincs kiszerelés: 1 csomag = alap recept mennyiség
-            var baseQty = Number(item.quantity || 1);
-            return Math.max(1, Math.ceil(needed / baseQty));
+
+            return Math.max(1, Math.ceil(needed));
         }
 
         function isCartable(item) {
