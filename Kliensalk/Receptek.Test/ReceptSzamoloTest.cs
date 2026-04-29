@@ -27,7 +27,7 @@ namespace Receptek.Test
         {
             var tenylegesErtek = _receptSzamolo.teljesIdo(keszit, sut);
 
-            Assert.AreEqual(tenylegesErtek, vartErtek);
+            Assert.That(tenylegesErtek, Is.EqualTo(vartErtek));
         }
 
         [Test,
@@ -38,7 +38,7 @@ namespace Receptek.Test
         {
             var tenylegesErtek = _receptSzamolo.kaloriaSzamitasa(osszKal, adag);
 
-            Assert.AreEqual(vartErtek, tenylegesErtek);
+            Assert.That(tenylegesErtek, Is.EqualTo(vartErtek));
         }
 
         [Test,
@@ -49,7 +49,7 @@ namespace Receptek.Test
         {
             var tenylegesErtek = _receptSzamolo.ervenyesAdag(adag);
 
-            Assert.AreEqual(vartErtek, tenylegesErtek);
+            Assert.That(tenylegesErtek, Is.EqualTo(vartErtek));
         }
 
         [Test,
@@ -60,7 +60,7 @@ namespace Receptek.Test
         {
             var tenylegesErtek = _receptSzamolo.ervenyesLeiras(leiras);
 
-            Assert.AreEqual(vartErtek, tenylegesErtek);
+            Assert.That(tenylegesErtek, Is.EqualTo(vartErtek));
         }
 
         [Test,
@@ -71,7 +71,7 @@ namespace Receptek.Test
         {
             var tenylegesErtek = _receptSzamolo.ervenyesIdo(perc);
 
-            Assert.AreEqual(vartErtek, tenylegesErtek);
+            Assert.That(tenylegesErtek, Is.EqualTo(vartErtek));
         }
 
         [Test,
@@ -82,7 +82,7 @@ namespace Receptek.Test
         {
             var tenylegesErtek = _receptSzamolo.elegendoHozzavalo(hozzavaloSzam);
 
-            Assert.AreEqual(vartErtek, tenylegesErtek);
+            Assert.That(tenylegesErtek, Is.EqualTo(vartErtek));
         }
     }
 }
