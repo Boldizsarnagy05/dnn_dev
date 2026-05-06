@@ -18,6 +18,10 @@
     <section class="nc-recipe-list">
         <h1>Receptek</h1>
 
+        <div class="nc-recipe-search">
+            <input type="search" placeholder="Keresés receptnévre" aria-label="Keresés receptnévre" data-recipe-search />
+        </div>
+
         <nav class="nc-filter-bar" aria-label="Recept kategóriák">
             @foreach (var filter in filters)
             {
@@ -35,7 +39,7 @@
             <div class="nc-card-grid">
                 @foreach (var recipe in Model.Recipes)
                 {
-                    <article class="nc-recipe-card">
+                    <article class="nc-recipe-card" data-recipe-card data-recipe-name="@recipe.Name.ToLowerInvariant()">
                         <div class="nc-card-head">
                             <h2>@recipe.Name</h2>
                             <span class="nc-kcal">@recipe.TotalCalories kcal</span>
@@ -50,6 +54,36 @@
                     </article>
                 }
             </div>
+            <div class="nc-empty nc-search-empty" data-search-empty>Nincs találat erre a keresésre.</div>
         }
     </section>
 </div>
+
+<script>
+    (function () {
+        var root = document.getElementById("RecipeModule-@Dnn.ModuleContext.ModuleId");
+        if (!root) return;
+
+        var input = root.querySelector("[data-recipe-search]");
+        var cards = Array.prototype.slice.call(root.querySelectorAll("[data-recipe-card]"));
+        var empty = root.querySelector("[data-search-empty]");
+
+        if (!input || cards.length === 0) return;
+
+        input.addEventListener("input", function () {
+            var query = input.value.toLowerCase().trim();
+            var visibleCount = 0;
+
+            cards.forEach(function (card) {
+                var name = card.getAttribute("data-recipe-name") || "";
+                var visible = query.length === 0 || name.indexOf(query) >= 0;
+                card.style.display = visible ? "" : "none";
+                if (visible) visibleCount += 1;
+            });
+
+            if (empty) {
+                empty.style.display = visibleCount === 0 ? "block" : "none";
+            }
+        });
+    })();
+</script>
