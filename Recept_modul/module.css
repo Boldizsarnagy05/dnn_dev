@@ -47,12 +47,15 @@
 
 .nc-recipe-search {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
+    align-items: center;
+    gap: 10px;
     margin: 22px 0 0;
 }
 
-.nc-recipe-search input {
-    width: min(360px, 100%);
+.nc-recipe-search input,
+.nc-recipe-search button {
     min-height: 40px;
     padding: 0 16px;
     border: 1px solid var(--nc-line);
@@ -61,6 +64,19 @@
     color: var(--nc-text);
     font-size: 14px;
     outline: none;
+}
+
+.nc-recipe-search input[type="search"] {
+    width: min(320px, 100%);
+}
+
+.nc-recipe-search input[type="number"] {
+    width: 122px;
+}
+
+.nc-recipe-search button {
+    cursor: pointer;
+    font-weight: 800;
 }
 
 .nc-recipe-search input:focus {
@@ -688,6 +704,18 @@
 }
 
 @media (max-width: 560px) {
+    .nc-recipe-search {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .nc-recipe-search input,
+    .nc-recipe-search input[type="search"],
+    .nc-recipe-search input[type="number"],
+    .nc-recipe-search button {
+        width: 100%;
+    }
+
     .nc-card-grid {
         grid-template-columns: 1fr;
     }
