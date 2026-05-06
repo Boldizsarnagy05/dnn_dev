@@ -45,12 +45,35 @@
     text-align: center;
 }
 
+.nc-recipe-search {
+    display: flex;
+    justify-content: center;
+    margin: 22px 0 0;
+}
+
+.nc-recipe-search input {
+    width: min(360px, 100%);
+    min-height: 40px;
+    padding: 0 16px;
+    border: 1px solid var(--nc-line);
+    border-radius: 999px;
+    background: #fff;
+    color: var(--nc-text);
+    font-size: 14px;
+    outline: none;
+}
+
+.nc-recipe-search input:focus {
+    border-color: #2d2f33;
+    box-shadow: 0 0 0 3px rgba(45, 47, 51, 0.08);
+}
+
 .nc-filter-bar {
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
     gap: 12px;
-    margin: 34px 0 40px;
+    margin: 22px 0 40px;
     width: 100%;
 }
 
@@ -100,6 +123,11 @@
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 26px;
+}
+
+.nc-search-empty {
+    display: none;
+    margin-top: 24px;
 }
 
 .nc-recipe-card {
