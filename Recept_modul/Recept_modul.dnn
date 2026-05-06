@@ -1,6 +1,6 @@
 <dotnetnuke type="Package" version="5.0">
   <packages>
-    <package name="Recept_modul" type="Module" version="00.00.12">
+    <package name="Recept_modul" type="Module" version="00.00.13">
       <friendlyName>Recept_modul</friendlyName>
       <description>Recept_modul</description>
       <iconFile>~/Icons/Sigma/Software_32X32_Standard.png</iconFile>
@@ -70,6 +70,14 @@
               <path>bin</path>
             </assembly>
           </assemblies>
+        </component>
+        <component type="ResourceFile">
+          <resourceFiles>
+            <basePath>DesktopModules/Recept_modul</basePath>
+            <resourceFile>
+              <name>Resources.zip</name>
+            </resourceFile>
+          </resourceFiles>
         </component>
       </components>
     </package>
