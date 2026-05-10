@@ -667,6 +667,7 @@
 }
 
 .nc-add-cart {
+    position: relative;
     width: 100%;
     min-height: 54px;
     margin-top: 26px;
@@ -685,12 +686,72 @@
     cursor: not-allowed;
 }
 
+.nc-add-cart.is-loading {
+    opacity: 0.68;
+    color: rgba(21, 21, 21, 0.62);
+}
+
+.nc-add-cart.is-loading::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 22px;
+    width: 16px;
+    height: 16px;
+    margin-top: -8px;
+    border: 2px solid rgba(21, 21, 21, 0.28);
+    border-top-color: #151515;
+    border-radius: 50%;
+    animation: nc-spin 0.75s linear infinite;
+}
+
 .nc-cart-message {
-    min-height: 22px;
+    display: none;
     margin-top: 14px;
-    color: #e6dcdc;
+    padding: 12px 14px;
+    border: 1px solid transparent;
+    border-radius: 8px;
     font-size: 13px;
+    font-weight: 700;
+    line-height: 1.35;
     text-align: center;
+}
+
+.nc-cart-message.is-loading,
+.nc-cart-message.is-success,
+.nc-cart-message.is-info,
+.nc-cart-message.is-error {
+    display: block;
+}
+
+.nc-cart-message.is-loading {
+    border-color: rgba(255, 223, 69, 0.38);
+    background: rgba(255, 223, 69, 0.12);
+    color: #ffe578;
+}
+
+.nc-cart-message.is-success {
+    border-color: rgba(111, 214, 151, 0.42);
+    background: rgba(111, 214, 151, 0.13);
+    color: #bdf2cf;
+}
+
+.nc-cart-message.is-info {
+    border-color: rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.08);
+    color: #e6e6e6;
+}
+
+.nc-cart-message.is-error {
+    border-color: rgba(255, 117, 117, 0.48);
+    background: rgba(255, 117, 117, 0.13);
+    color: #ffc4c4;
+}
+
+@keyframes nc-spin {
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 @media (max-width: 1180px) {
