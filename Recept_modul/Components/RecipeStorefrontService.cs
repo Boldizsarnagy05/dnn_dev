@@ -20,6 +20,8 @@ namespace Teszko.ReceptModulRecept_modul.Components
 
     internal sealed class RecipeStorefrontService : IRecipeStorefrontService
     {
+        private const int MaxCartLineQuantity = 200;
+
         public RecipeListViewModel GetRecipes(string mealType)
         {
             var recipes = TryLoadHotcakesRecipes();
@@ -71,6 +73,17 @@ namespace Teszko.ReceptModulRecept_modul.Components
                     Success = false,
                     Message = "Nincs kosárba tehető termék.",
                     Errors = { "Válassz legalább egy hozzávalót." }
+                };
+            }
+
+            var oversizedLines = lines.Where(i => i.Quantity > MaxCartLineQuantity).ToList();
+            if (oversizedLines.Count > 0)
+            {
+                return new CartActionResult
+                {
+                    Success = false,
+                    Message = "Egy termékből legfeljebb " + MaxCartLineQuantity + " db tehető a kosárba.",
+                    Errors = { "Csökkentsd a kosárba küldött mennyiséget, majd próbáld újra." }
                 };
             }
 
