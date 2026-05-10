@@ -110,11 +110,11 @@
             <small data-total-help>Adj hozzá termékeket a kosárhoz</small>
         </div>
 
-        <h2>KOSÁR ELŐNÉZET</h2>
+        <h2>KIVÁLASZTOTT TERMÉKEK</h2>
         <div class="nc-cart-preview" data-cart-preview>
             <div class="nc-cart-empty">
                 <span class="nc-empty-icon">+</span>
-                A kosár még üres.<br />Adj hozzá összetevőket!
+                Még nincs kiválasztott termék.<br />Adj hozzá összetevőket!
             </div>
         </div>
 
@@ -138,6 +138,9 @@
         var ingredients = @Html.Raw(ingredientsJson);
         var preview = {};
         var postUrl = "@Url.Action("AddProductsToCart", "Item")";
+        var cartMessageType = "";
+        var cartChangedWhileLoading = false;
+        var maxCartQuantity = 200;
 
         function money(value) {
             return Math.round(value).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
@@ -151,22 +154,12 @@
             return Math.round(value * 100) / 100;
         }
 
-        function cartQuantity(item) {
-            var needed = scaled(Number(item.quantity || 1));
-            var unit = String(item.unit || '').toLowerCase().trim();
+        function limitCartQuantity(value) {
+            return Math.max(1, Math.min(maxCartQuantity, Math.ceil(Number(value || 1))));
+        }
 
-            if (unit === 'db') {
-                // Darab: lineárisan skáláz, felfelé kerekít
-                return Math.max(1, Math.ceil(needed));
-            }
-            // Gramm / egyéb súly: kiszerelés alapján
-            var pack = Number(item.packageQuantity || 0);
-            if (pack > 0) {
-                return Math.max(1, Math.ceil(needed / pack));
-            }
-            // Nincs kiszerelés: 1 csomag = alap recept mennyiség
-            var baseQty = Number(item.quantity || 1);
-            return Math.max(1, Math.ceil(needed / baseQty));
+        function cartQuantity() {
+            return limitCartQuantity(servings);
         }
 
         function isCartable(item) {
@@ -192,9 +185,9 @@
             var item = ingredients[index];
             if (!isCartable(item)) return;
             if (!preview[item.productBvin]) {
-                preview[item.productBvin] = { item: item, qty: cartQuantity(item) };
+                preview[item.productBvin] = { item: item, qty: cartQuantity() };
             } else {
-                preview[item.productBvin].qty += 1;
+                preview[item.productBvin].qty = limitCartQuantity(preview[item.productBvin].qty + 1);
             }
             renderPreview();
         }
@@ -202,7 +195,7 @@
         function addAllPreview() {
             ingredients.forEach(function (item) {
                 if (!isCartable(item)) return;
-                preview[item.productBvin] = { item: item, qty: cartQuantity(item) };
+                preview[item.productBvin] = { item: item, qty: cartQuantity() };
             });
             renderPreview();
         }
@@ -212,7 +205,7 @@
             var submit = root.querySelector("[data-submit-cart]");
             var keys = Object.keys(preview);
             if (keys.length === 0) {
-                box.innerHTML = '<div class="nc-cart-empty"><span class="nc-empty-icon">+</span>A kosár még üres.<br />Adj hozzá összetevőket!</div>';
+                box.innerHTML = '<div class="nc-cart-empty"><span class="nc-empty-icon">+</span>Még nincs kiválasztott termék.<br />Adj hozzá összetevőket!</div>';
                 root.querySelector("[data-cart-total]").textContent = "0";
                 root.querySelector("[data-panel-kcal]").textContent = "0";
                 root.querySelector("[data-total-help]").textContent = "Adj hozzá termékeket a kosárhoz";
@@ -250,6 +243,20 @@
             submit.disabled = false;
         }
 
+        function showCartLimitMessage() {
+            setCartMessage("info", "Egy termékből legfeljebb " + maxCartQuantity + " db adható a kosárhoz.");
+        }
+
+        function markPreviewChanged() {
+            if (cartMessageType === "loading") {
+                cartChangedWhileLoading = true;
+            } else if (cartMessageType === "success") {
+                setCartMessage("info", "A kiválasztás módosult. A frissítéshez add újra a kosárhoz.");
+            } else if (cartMessageType && cartMessageType !== "loading") {
+                setCartMessage("", "");
+            }
+        }
+
         root.addEventListener("click", function (event) {
             var add = event.target.getAttribute("data-add-preview");
             var plus = event.target.getAttribute("data-line-plus");
@@ -259,51 +266,112 @@
             if (event.target.hasAttribute("data-serving-plus")) {
                 servings += 1;
                 updateServing();
+                markPreviewChanged();
             } else if (event.target.hasAttribute("data-serving-minus")) {
                 servings = Math.max(1, servings - 1);
                 updateServing();
+                markPreviewChanged();
             } else if (event.target.hasAttribute("data-add-all")) {
                 addAllPreview();
+                if (Number(servings || 1) > maxCartQuantity) {
+                    showCartLimitMessage();
+                } else {
+                    markPreviewChanged();
+                }
             } else if (add !== null) {
+                var item = ingredients[Number(add)];
+                var wasAtLimit = item && preview[item.productBvin] && preview[item.productBvin].qty >= maxCartQuantity;
                 addPreview(Number(add));
+                if (wasAtLimit || Number(servings || 1) > maxCartQuantity) {
+                    showCartLimitMessage();
+                } else {
+                    markPreviewChanged();
+                }
             } else if (plus) {
-                preview[plus].qty += 1;
+                if (preview[plus].qty >= maxCartQuantity) {
+                    showCartLimitMessage();
+                    return;
+                }
+                preview[plus].qty = limitCartQuantity(preview[plus].qty + 1);
                 renderPreview();
+                markPreviewChanged();
             } else if (minus) {
                 preview[minus].qty -= 1;
                 if (preview[minus].qty <= 0) delete preview[minus];
                 renderPreview();
+                markPreviewChanged();
             } else if (remove) {
                 delete preview[remove];
                 renderPreview();
+                markPreviewChanged();
             } else if (event.target.hasAttribute("data-submit-cart")) {
                 submitCart();
             }
         });
 
-        function submitCart() {
+        function setCartMessage(type, text) {
             var message = root.querySelector("[data-cart-message]");
+            if (!message) return;
+
+            message.className = "nc-cart-message" + (type ? " is-" + type : "");
+            message.textContent = text || "";
+            cartMessageType = type || "";
+        }
+
+        function submitCart() {
+            var submit = root.querySelector("[data-submit-cart]");
             var items = Object.keys(preview).map(function (key) {
                 return { ProductBvin: key, Quantity: preview[key].qty };
             });
 
             if (items.length === 0) {
-                message.textContent = "A kosár előnézet üres.";
+                setCartMessage("error", "A kosár előnézet üres.");
                 return;
             }
 
-            message.textContent = "Kosár frissítése...";
+            if (submit) {
+                submit.disabled = true;
+                submit.classList.add("is-loading");
+                submit.setAttribute("aria-busy", "true");
+            }
+            cartChangedWhileLoading = false;
+            setCartMessage("loading", "Kosár frissítése...");
             var xhr = new XMLHttpRequest();
             xhr.open("POST", postUrl, true);
             xhr.setRequestHeader("Content-Type", "application/json; charset=utf-8");
             xhr.onreadystatechange = function () {
                 if (xhr.readyState !== 4) return;
+                if (submit) {
+                    submit.disabled = false;
+                    submit.classList.remove("is-loading");
+                    submit.removeAttribute("aria-busy");
+                }
                 try {
                     var result = JSON.parse(xhr.responseText);
-                    message.textContent = result.Message || result.message || "Kosár művelet kész.";
+                    var success = result.Success !== false && result.success !== false && xhr.status >= 200 && xhr.status < 300;
+                    if (success && cartChangedWhileLoading) {
+                        setCartMessage("info", "A kosár frissült, de közben módosítottad a kiválasztást. A frissítéshez add újra a kosárhoz.");
+                    } else {
+                        setCartMessage(success ? "success" : "error", result.Message || result.message || (success ? "A termékek bekerültek a kosárba." : "A kosár frissítése nem sikerült."));
+                    }
                 } catch (e) {
-                    message.textContent = xhr.status >= 200 && xhr.status < 300 ? "Kosár művelet kész." : "A kosár frissítése nem sikerült.";
+                    var fallbackSuccess = xhr.status >= 200 && xhr.status < 300;
+                    if (fallbackSuccess && cartChangedWhileLoading) {
+                        setCartMessage("info", "A kosár frissült, de közben módosítottad a kiválasztást. A frissítéshez add újra a kosárhoz.");
+                    } else {
+                        setCartMessage(fallbackSuccess ? "success" : "error", fallbackSuccess ? "A termékek bekerültek a kosárba." : "A kosár frissítése nem sikerült.");
+                    }
                 }
+                cartChangedWhileLoading = false;
+            };
+            xhr.onerror = function () {
+                if (submit) {
+                    submit.disabled = false;
+                    submit.classList.remove("is-loading");
+                    submit.removeAttribute("aria-busy");
+                }
+                cartChangedWhileLoading = false;
+                setCartMessage("error", "A kosár frissítése nem sikerült.");
             };
             xhr.send(JSON.stringify({ CategoryBvin: "@Model.CategoryBvin", Servings: servings, Items: items }));
         }
