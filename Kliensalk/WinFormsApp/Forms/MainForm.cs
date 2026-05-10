@@ -695,10 +695,11 @@ namespace NaturaCo.RecipeEditor.Forms
 
                 var ingredient = new RecipeIngredient
                 {
-                    IngredientName = dlg.IngredientName,
-                    Amount         = dlg.Amount,
-                    Unit           = dlg.Unit,
-                    SortOrder      = _currentRecipe.Ingredients.Count + 1
+                    IngredientName  = dlg.IngredientName,
+                    Amount          = dlg.Amount,
+                    Unit            = dlg.Unit,
+                    CaloriesPer100g = dlg.CaloriesPer100g,
+                    SortOrder       = _currentRecipe.Ingredients.Count + 1
                 };
 
                 _currentRecipe.Ingredients.Add(ingredient);
