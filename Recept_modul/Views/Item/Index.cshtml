@@ -43,12 +43,15 @@
             <div class="nc-card-grid">
                 @foreach (var recipe in Model.Recipes)
                 {
-                    <article class="nc-recipe-card"
-                             data-recipe-card
-                             data-recipe-name="@recipe.Name.ToLowerInvariant()"
-                             data-recipe-kcal="@recipe.TotalCalories"
-                             data-recipe-time="@(recipe.PrepTimeMinutes + recipe.CookTimeMinutes)"
-                             data-recipe-servings="@recipe.Servings">
+                    var detailsUrl = Url.Action("Details", "Item", new { id = recipe.CategoryBvin });
+                    <a class="nc-recipe-card"
+                       href="@detailsUrl"
+                       aria-label="@recipe.Name recept megtekintése"
+                       data-recipe-card
+                       data-recipe-name="@recipe.Name.ToLowerInvariant()"
+                       data-recipe-kcal="@recipe.TotalCalories"
+                       data-recipe-time="@(recipe.PrepTimeMinutes + recipe.CookTimeMinutes)"
+                       data-recipe-servings="@recipe.Servings">
                         <div class="nc-card-head">
                             <h2>@recipe.Name</h2>
                             <span class="nc-kcal">@recipe.TotalCalories kcal</span>
@@ -57,10 +60,10 @@
                             <span>@(recipe.PrepTimeMinutes + recipe.CookTimeMinutes) perc</span>
                             <span>@recipe.Servings főre készítve</span>
                         </div>
-                        <a class="nc-card-link" href="@Url.Action("Details", "Item", new { id = recipe.CategoryBvin })">
+                        <span class="nc-card-link">
                             Recept megtekintése <span aria-hidden="true">&gt;</span>
-                        </a>
-                    </article>
+                        </span>
+                    </a>
                 }
             </div>
             <div class="nc-empty nc-search-empty" data-search-empty>Nincs találat erre a keresésre.</div>
