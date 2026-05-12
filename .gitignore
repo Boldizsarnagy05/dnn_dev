@@ -9,7 +9,9 @@ packages/
 
 # Build/package output
 *.nupkg
-*.zip`n!Teszko_Dnn_HelloWorld_Items/install/*.zip
+*.zip
+!Teszko_Dnn_HelloWorld_Items/install/*.zip
+!downloads/*.zip
 
 # Python
 __pycache__/
