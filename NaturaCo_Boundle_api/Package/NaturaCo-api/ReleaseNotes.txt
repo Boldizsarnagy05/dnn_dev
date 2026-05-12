@@ -1,0 +1,5 @@
+01.00.00
+
+- Initial DNN package for the NaturaCo RecipeSync API
+- Installs NaturaCo.RecipeSyncApi.dll into /bin
+- Creates DesktopModules/NaturaCo
