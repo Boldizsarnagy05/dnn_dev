@@ -140,7 +140,7 @@
         var postUrl = "@Url.Action("AddProductsToCart", "Item")";
         var cartMessageType = "";
         var cartChangedWhileLoading = false;
-        var maxCartQuantity = 200;
+        var maxCartQuantity = 500;
 
         function money(value) {
             return Math.round(value).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
@@ -154,12 +154,18 @@
             return Math.round(value * 100) / 100;
         }
 
-        function limitCartQuantity(value) {
-            return Math.max(1, Math.min(maxCartQuantity, Math.ceil(Number(value || 1))));
+        function cartQuantity() {
+            return Math.max(1, Math.ceil(Number(servings || 1)));
         }
 
-        function cartQuantity() {
-            return limitCartQuantity(servings);
+        function previewTotalQuantity() {
+            return Object.keys(preview).reduce(function (sum, key) {
+                return sum + Number(preview[key].qty || 0);
+            }, 0);
+        }
+
+        function canAddQuantity(quantity) {
+            return previewTotalQuantity() + Number(quantity || 0) <= maxCartQuantity;
         }
 
         function isCartable(item) {
@@ -183,21 +189,31 @@
 
         function addPreview(index) {
             var item = ingredients[index];
-            if (!isCartable(item)) return;
+            if (!isCartable(item)) return false;
+            var quantityToAdd = preview[item.productBvin] ? 1 : cartQuantity();
+            if (!canAddQuantity(quantityToAdd)) return false;
+
             if (!preview[item.productBvin]) {
-                preview[item.productBvin] = { item: item, qty: cartQuantity() };
+                preview[item.productBvin] = { item: item, qty: quantityToAdd };
             } else {
-                preview[item.productBvin].qty = limitCartQuantity(preview[item.productBvin].qty + 1);
+                preview[item.productBvin].qty += quantityToAdd;
             }
             renderPreview();
+            return true;
         }
 
         function addAllPreview() {
-            ingredients.forEach(function (item) {
-                if (!isCartable(item)) return;
-                preview[item.productBvin] = { item: item, qty: cartQuantity() };
+            var cartable = ingredients.filter(isCartable);
+            var quantity = cartQuantity();
+            var requestedTotal = cartable.length * quantity;
+            if (requestedTotal > maxCartQuantity) return false;
+
+            preview = {};
+            cartable.forEach(function (item) {
+                preview[item.productBvin] = { item: item, qty: quantity };
             });
             renderPreview();
+            return true;
         }
 
         function renderPreview() {
@@ -244,7 +260,7 @@
         }
 
         function showCartLimitMessage() {
-            setCartMessage("info", "Egy termékből legfeljebb " + maxCartQuantity + " db adható a kosárhoz.");
+            setCartMessage("info", "A recept termékeiből összesen legfeljebb " + maxCartQuantity + " db adható a kosárhoz.");
         }
 
         function markPreviewChanged() {
@@ -272,27 +288,23 @@
                 updateServing();
                 markPreviewChanged();
             } else if (event.target.hasAttribute("data-add-all")) {
-                addAllPreview();
-                if (Number(servings || 1) > maxCartQuantity) {
-                    showCartLimitMessage();
-                } else {
+                if (addAllPreview()) {
                     markPreviewChanged();
+                } else {
+                    showCartLimitMessage();
                 }
             } else if (add !== null) {
-                var item = ingredients[Number(add)];
-                var wasAtLimit = item && preview[item.productBvin] && preview[item.productBvin].qty >= maxCartQuantity;
-                addPreview(Number(add));
-                if (wasAtLimit || Number(servings || 1) > maxCartQuantity) {
-                    showCartLimitMessage();
-                } else {
+                if (addPreview(Number(add))) {
                     markPreviewChanged();
+                } else {
+                    showCartLimitMessage();
                 }
             } else if (plus) {
-                if (preview[plus].qty >= maxCartQuantity) {
+                if (!canAddQuantity(1)) {
                     showCartLimitMessage();
                     return;
                 }
-                preview[plus].qty = limitCartQuantity(preview[plus].qty + 1);
+                preview[plus].qty += 1;
                 renderPreview();
                 markPreviewChanged();
             } else if (minus) {
@@ -326,6 +338,11 @@
 
             if (items.length === 0) {
                 setCartMessage("error", "A kosár előnézet üres.");
+                return;
+            }
+
+            if (previewTotalQuantity() > maxCartQuantity) {
+                showCartLimitMessage();
                 return;
             }
 
