@@ -5,9 +5,10 @@ namespace NaturaCo.RecipeEditor.Forms
 {
     public partial class CustomIngredientDialog : Form
     {
-        public string  IngredientName => txtName.Text.Trim();
-        public decimal Amount         => (decimal)nudAmount.Value;
-        public string  Unit           => cmbUnit.Text.Trim();
+        public string  IngredientName  => txtName.Text.Trim();
+        public decimal Amount          => (decimal)nudAmount.Value;
+        public string  Unit            => cmbUnit.Text.Trim();
+        public decimal CaloriesPer100g => (decimal)nudCaloriesPer100g.Value;
 
         public CustomIngredientDialog()
         {
