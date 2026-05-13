@@ -11,7 +11,7 @@ packages/
 *.nupkg
 *.zip
 !Teszko_Dnn_HelloWorld_Items/install/*.zip
-!downloads/*.zip
+!dl/*.zip
 
 # Python
 __pycache__/

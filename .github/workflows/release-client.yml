@@ -43,14 +43,14 @@ jobs:
         shell: pwsh
         run: |
           $files = Get-ChildItem "Kliensalk/WinFormsApp/bin/Release/net48" -Exclude "*.pdb"
-          Compress-Archive -Path $files.FullName -DestinationPath "downloads/NaturaCo.RecipeEditor.zip" -Force
+          Compress-Archive -Path $files.FullName -DestinationPath "dl/NaturaCo.RecipeEditor.zip" -Force
 
       - name: Commit updated ZIP to main
         shell: pwsh
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add downloads/NaturaCo.RecipeEditor.zip
+          git add dl/NaturaCo.RecipeEditor.zip
           git commit -m "Build: kliens ZIP frissítve (automatikus build)"
           git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/Boldizsarnagy05/dnn_dev.git main
 
@@ -79,6 +79,6 @@ jobs:
             Töltsd le a `NaturaCo.RecipeEditor.zip` fájlt, csomagold ki, majd futtasd a `NaturaCo.RecipeEditor.exe` programot.
 
             **Rendszerkövetelmény:** Windows, .NET Framework 4.8
-          files: downloads/NaturaCo.RecipeEditor.zip
+          files: dl/NaturaCo.RecipeEditor.zip
           draft: false
           prerelease: false
