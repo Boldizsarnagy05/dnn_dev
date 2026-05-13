@@ -311,7 +311,12 @@ namespace Teszko.ReceptModulRecept_modul.Components
                 return false;
             }
 
-            var cart = TryInvokeAny(orderServices, new[] { "EnsureShoppingCart", "CurrentShoppingCart" });
+            var cart = TryInvokeAny(orderServices, new[] { "EnsureShoppingCart" });
+            if (cart == null)
+            {
+                cart = TryInvokeAny(orderServices, new[] { "CurrentShoppingCart" });
+            }
+
             if (cart == null)
             {
                 return false;
