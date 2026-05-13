@@ -39,11 +39,12 @@ jobs:
         working-directory: Kliensalk/WinFormsApp
         run: msbuild WinFormsApp.sln /p:Configuration=Release /p:Platform="Any CPU"
 
-      - name: Create ZIP (without .pdb)
+      - name: Create ZIP (without .pdb, with PDF leírás)
         shell: pwsh
         run: |
           $files = Get-ChildItem "Kliensalk/WinFormsApp/bin/Release/net48" -Exclude "*.pdb"
           Compress-Archive -Path $files.FullName -DestinationPath "dl/app.zip" -Force
+          Compress-Archive -Path "dl/felhasznaloi_leiras.pdf" -Update -DestinationPath "dl/app.zip"
 
       - name: Commit updated ZIP to main
         shell: pwsh
