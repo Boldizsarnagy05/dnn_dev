@@ -12,6 +12,7 @@ packages/
 *.zip
 !Teszko_Dnn_HelloWorld_Items/install/*.zip
 !dl/app.zip
+!dl/*.md
 
 # Python
 __pycache__/
