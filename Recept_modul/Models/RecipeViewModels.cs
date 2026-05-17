@@ -13,6 +13,7 @@ namespace Teszko.ReceptModulRecept_modul.Models
         public string CategoryBvin { get; set; }
         public string Name { get; set; }
         public string ShortDescription { get; set; }
+        public string IngredientSearchText { get; set; }
         public string MealType { get; set; }
         public int Servings { get; set; }
         public int PrepTimeMinutes { get; set; }
