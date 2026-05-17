@@ -9,16 +9,14 @@
 <div class="License">
 	<h3>About the Recept_modul</h3>
 	<p class="Owner">
-		<b>Version CHANGEME</b><br /><br />
+		<b>Version 00.00.20</b><br /><br />
 	</p>
-	<p>Description about version.</p>
+	<p>Receptlista alapanyag/termek szerinti szurese.</p>
 	
 	<h4>Bug Fixes</h4>
 	<ul>
-			<li>List</li>
-			<li>of</li>
-			<li>bug</li>
-			<li>fixes</li>
+			<li>Uj keresomezovel a receptek a hozzarendelt alapanyagok/termekek neve alapjan is szurhetok.</li>
+			<li>A receptnev es alapanyag kereses ekezetfuggetlen Contains logikat hasznal a kliensoldali szuresben.</li>
 	</ul>
 	
 </div>

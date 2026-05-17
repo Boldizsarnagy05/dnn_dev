@@ -203,6 +203,7 @@ namespace Teszko.ReceptModulRecept_modul.Components
                 CategoryBvin = Convert.ToString(GetPropertyIfPresent(category, "Bvin")),
                 Name = Convert.ToString(GetPropertyIfPresent(category, "Name")),
                 ShortDescription = meta.ShortDescription ?? Convert.ToString(GetPropertyIfPresent(category, "MetaDescription")) ?? fallbackDescription,
+                IngredientSearchText = BuildIngredientSearchText(meta.Ingredients),
                 MealType = NormalizeMealType(meta.MealType),
                 Servings = servings,
                 PrepTimeMinutes = meta.PrepTimeMinutes,
@@ -402,12 +403,26 @@ namespace Teszko.ReceptModulRecept_modul.Components
                 CategoryBvin = r.CategoryBvin,
                 Name = r.Name,
                 ShortDescription = r.Description,
+                IngredientSearchText = BuildIngredientSearchText(r.Ingredients.Select(i => i.ProductName)),
                 MealType = r.MealType,
                 Servings = r.Servings,
                 PrepTimeMinutes = r.PrepTimeMinutes,
                 CookTimeMinutes = r.CookTimeMinutes,
                 TotalCalories = r.TotalCalories
             }).ToList();
+        }
+
+        private static string BuildIngredientSearchText(IEnumerable<RecipeIngredientMetadata> ingredients)
+        {
+            return BuildIngredientSearchText((ingredients ?? Enumerable.Empty<RecipeIngredientMetadata>())
+                .Select(i => i?.ProductName));
+        }
+
+        private static string BuildIngredientSearchText(IEnumerable<string> ingredientNames)
+        {
+            return string.Join(" ", (ingredientNames ?? Enumerable.Empty<string>())
+                .Where(name => !string.IsNullOrWhiteSpace(name))
+                .Select(name => name.Trim()));
         }
 
         private static List<RecipeDetailViewModel> DemoRecipeDetails()

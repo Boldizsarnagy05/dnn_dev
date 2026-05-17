@@ -20,6 +20,7 @@
 
         <div class="nc-recipe-search">
             <input type="search" placeholder="Keresés receptnévre" aria-label="Keresés receptnévre" data-recipe-search />
+            <input type="search" placeholder="Keresés alapanyagra" aria-label="Keresés alapanyagra" data-ingredient-search />
             <input type="number" min="0" inputmode="numeric" placeholder="Max kcal" aria-label="Maximum kalória" data-filter-kcal />
             <input type="number" min="0" inputmode="numeric" placeholder="Max perc" aria-label="Maximum elkészítési idő" data-filter-time />
             <input type="number" min="1" inputmode="numeric" placeholder="Főre" aria-label="Adag főre" data-filter-servings />
@@ -44,11 +45,13 @@
                 @foreach (var recipe in Model.Recipes)
                 {
                     var detailsUrl = Url.Action("Details", "Item", new { id = recipe.CategoryBvin });
+                    var ingredientSearchText = recipe.IngredientSearchText ?? string.Empty;
                     <a class="nc-recipe-card"
                        href="@detailsUrl"
                        aria-label="@recipe.Name recept megtekintése"
                        data-recipe-card
                        data-recipe-name="@recipe.Name.ToLowerInvariant()"
+                       data-recipe-ingredients="@ingredientSearchText.ToLowerInvariant()"
                        data-recipe-kcal="@recipe.TotalCalories"
                        data-recipe-time="@(recipe.PrepTimeMinutes + recipe.CookTimeMinutes)"
                        data-recipe-servings="@recipe.Servings">
@@ -77,6 +80,7 @@
         if (!root) return;
 
         var input = root.querySelector("[data-recipe-search]");
+        var ingredientInput = root.querySelector("[data-ingredient-search]");
         var kcalInput = root.querySelector("[data-filter-kcal]");
         var timeInput = root.querySelector("[data-filter-time]");
         var servingsInput = root.querySelector("[data-filter-servings]");
@@ -86,20 +90,32 @@
 
         if (!input || cards.length === 0) return;
 
+        function normalizeText(value) {
+            value = (value || "").toLowerCase().trim();
+            if (value.normalize) {
+                value = value.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            }
+
+            return value;
+        }
+
         function filterRecipes() {
-            var query = input.value.toLowerCase().trim();
+            var query = normalizeText(input.value);
+            var ingredientQuery = normalizeText(ingredientInput && ingredientInput.value);
             var maxKcal = Number(kcalInput && kcalInput.value ? kcalInput.value : 0);
             var maxTime = Number(timeInput && timeInput.value ? timeInput.value : 0);
             var servings = Number(servingsInput && servingsInput.value ? servingsInput.value : 0);
             var visibleCount = 0;
 
             cards.forEach(function (card) {
-                var name = card.getAttribute("data-recipe-name") || "";
+                var name = normalizeText(card.getAttribute("data-recipe-name"));
+                var ingredients = normalizeText(card.getAttribute("data-recipe-ingredients"));
                 var kcal = Number(card.getAttribute("data-recipe-kcal") || 0);
                 var time = Number(card.getAttribute("data-recipe-time") || 0);
                 var cardServings = Number(card.getAttribute("data-recipe-servings") || 0);
                 var visible = query.length === 0 || name.indexOf(query) >= 0;
 
+                visible = visible && (ingredientQuery.length === 0 || ingredients.indexOf(ingredientQuery) >= 0);
                 visible = visible && (maxKcal <= 0 || kcal <= maxKcal);
                 visible = visible && (maxTime <= 0 || time <= maxTime);
                 visible = visible && (servings <= 0 || cardServings === servings);
@@ -114,12 +130,14 @@
         }
 
         input.addEventListener("input", filterRecipes);
+        if (ingredientInput) ingredientInput.addEventListener("input", filterRecipes);
         if (kcalInput) kcalInput.addEventListener("input", filterRecipes);
         if (timeInput) timeInput.addEventListener("input", filterRecipes);
         if (servingsInput) servingsInput.addEventListener("input", filterRecipes);
         if (clearButton) {
             clearButton.addEventListener("click", function () {
                 input.value = "";
+                if (ingredientInput) ingredientInput.value = "";
                 if (kcalInput) kcalInput.value = "";
                 if (timeInput) timeInput.value = "";
                 if (servingsInput) servingsInput.value = "";
